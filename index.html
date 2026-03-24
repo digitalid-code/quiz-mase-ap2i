@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz MASE – AP2I</title>
+<style>
+  :root {
+    --navy: #1B3A6B;
+    --orange: #E8521A;
+    --light: #F4F6F9;
+    --white: #FFFFFF;
+    --text: #1C2B42;
+    --muted: #607090;
+    --success: #1E7E34;
+    --danger: #B91C1C;
+    --warn: #D97706;
+    --mid: #D0D9E8;
+    --shadow: 0 4px 16px rgba(27,58,107,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Calibri, Arial, sans-serif; background: var(--light); color: var(--text); min-height: 100vh; }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--navy);
+    padding: 18px 32px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  .header-shield { font-size: 28px; }
+  .header-title { color: white; font-size: 18px; font-weight: 700; }
+  .header-sub { color: #A8BEDD; font-size: 12px; margin-top: 2px; }
+  .header-badge {
+    margin-left: auto; background: var(--orange);
+    color: white; font-size: 11px; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px; letter-spacing: 1px;
+  }
+
+  /* ── MAIN ── */
+  .main { max-width: 800px; margin: 0 auto; padding: 32px 16px 64px; }
+
+  /* ── PARTICIPANT FORM ── */
+  .participant-card {
+    background: white; border-radius: 12px;
+    padding: 32px; box-shadow: var(--shadow);
+    border-top: 4px solid var(--orange);
+  }
+  .participant-card h2 { color: var(--navy); font-size: 20px; margin-bottom: 8px; }
+  .participant-card p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .form-row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .form-group { flex: 1; min-width: 200px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+  .form-group input {
+    width: 100%; padding: 10px 14px; border: 1.5px solid var(--mid);
+    border-radius: 8px; font-size: 14px; color: var(--text);
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus { outline: none; border-color: var(--orange); }
+  .btn-start {
+    background: var(--orange); color: white; border: none;
+    padding: 13px 32px; border-radius: 8px; font-size: 15px;
+    font-weight: 700; cursor: pointer; width: 100%;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 8px;
+  }
+  .btn-start:hover { background: #c93e0e; transform: translateY(-1px); }
+  .btn-start:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+
+  /* ── PROGRESS ── */
+  .progress-bar-wrap {
+    background: var(--mid); border-radius: 20px; height: 6px; margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .progress-bar { height: 100%; background: var(--orange); border-radius: 20px; transition: width 0.4s ease; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+
+  /* ── QUESTION CARD ── */
+  .question-card {
+    background: white; border-radius: 12px;
+    padding: 28px 32px; box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .question-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .question-num {
+    background: var(--navy); color: white;
+    font-size: 11px; font-weight: 700; padding: 3px 10px;
+    border-radius: 20px; letter-spacing: 1px;
+  }
+  .question-theme {
+    background: var(--light); color: var(--muted);
+    font-size: 11px; font-weight: 600; padding: 3px 10px;
+    border-radius: 20px; letter-spacing: 0.5px;
+  }
+  .question-text { font-size: 16px; font-weight: 600; color: var(--navy); line-height: 1.5; margin-bottom: 20px; }
+
+  /* ── OPTIONS ── */
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    display: flex; align-items: center; gap: 14px;
+    border: 2px solid var(--mid); border-radius: 10px;
+    padding: 13px 16px; cursor: pointer;
+    transition: all 0.18s; background: white;
+  }
+  .option:hover:not(.locked) { border-color: var(--orange); background: #FFF5F0; }
+  .option.selected:not(.locked) { border-color: var(--orange); background: #FFF5F0; }
+  .option.correct { border-color: var(--success); background: #F0FFF4; }
+  .option.wrong { border-color: var(--danger); background: #FFF0F0; }
+  .option-letter {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--light); color: var(--navy);
+    font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.18s;
+  }
+  .option.selected:not(.locked) .option-letter { background: var(--orange); color: white; }
+  .option.correct .option-letter { background: var(--success); color: white; }
+  .option.wrong .option-letter { background: var(--danger); color: white; }
+  .option-text { font-size: 14px; color: var(--text); }
+  .option-icon { margin-left: auto; font-size: 16px; }
+
+  /* ── EXPLANATION ── */
+  .explanation {
+    margin-top: 16px; padding: 14px 16px;
+    border-radius: 8px; font-size: 13px; line-height: 1.5;
+    border-left: 4px solid;
+    animation: fadeIn 0.3s ease;
+  }
+  .explanation.correct { background: #F0FFF4; border-color: var(--success); color: var(--success); }
+  .explanation.wrong { background: #FFF0F0; border-color: var(--danger); color: var(--danger); }
+
+  /* ── NAV ── */
+  .nav-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 4px; }
+  .btn-next {
+    background: var(--navy); color: white; border: none;
+    padding: 11px 28px; border-radius: 8px; font-size: 14px;
+    font-weight: 700; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-next:hover { background: #0f2547; }
+  .btn-next:disabled { background: var(--muted); cursor: not-allowed; }
+
+  /* ── RESULTS ── */
+  .results-card {
+    background: white; border-radius: 12px;
+    padding: 40px 32px; box-shadow: var(--shadow);
+    text-align: center;
+    animation: fadeIn 0.4s ease;
+  }
+  .score-circle {
+    width: 140px; height: 140px; border-radius: 50%;
+    margin: 0 auto 24px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-weight: 700;
+    border: 6px solid;
+  }
+  .score-circle .score-val { font-size: 36px; line-height: 1; }
+  .score-circle .score-lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .score-circle.excellent { border-color: var(--success); color: var(--success); }
+  .score-circle.good { border-color: var(--warn); color: var(--warn); }
+  .score-circle.fail { border-color: var(--danger); color: var(--danger); }
+  .results-title { font-size: 22px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+  .results-sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+  .results-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+  .results-stat { background: var(--light); border-radius: 10px; padding: 16px; }
+  .results-stat .val { font-size: 22px; font-weight: 700; color: var(--navy); }
+  .results-stat .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* Review section */
+  .review-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 12px; text-align: left; }
+  .review-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px; border-radius: 8px; margin-bottom: 8px;
+    text-align: left; font-size: 13px;
+  }
+  .review-item.ok { background: #F0FFF4; }
+  .review-item.ko { background: #FFF0F0; }
+  .review-dot { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .review-q { font-weight: 600; color: var(--text); }
+  .review-a { color: var(--muted); font-size: 12px; margin-top: 3px; }
+
+  .btn-restart {
+    background: var(--orange); color: white; border: none;
+    padding: 13px 32px; border-radius: 8px; font-size: 15px;
+    font-weight: 700; cursor: pointer; transition: background 0.2s;
+    margin-top: 8px;
+  }
+  .btn-restart:hover { background: #c93e0e; }
+
+  /* ── TRACKING STATUS ── */
+  .tracking-status {
+    margin-top: 20px; padding: 12px 16px; border-radius: 8px;
+    font-size: 13px; font-weight: 600; text-align: center;
+  }
+  .tracking-status.sending { background: #FFF8E1; color: var(--warn); }
+  .tracking-status.sent { background: #F0FFF4; color: var(--success); }
+  .tracking-status.error { background: #FFF0F0; color: var(--danger); }
+
+
+  @media (max-width: 600px) {
+    .main { padding: 20px 12px 48px; }
+    .results-grid { grid-template-columns: 1fr 1fr; }
+    .form-row { flex-direction: column; }
+    .question-card { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-shield">🛡️</span>
+  <div>
+    <div class="header-title">Quiz de validation – Formation MASE</div>
+    <div class="header-sub">AP2I · Programme de Prévention des Risques · Mars 2026</div>
+  </div>
+  <span class="header-badge">AP2I</span>
+</div>
+
+<div class="main" id="app"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// CONFIGURATION ADMIN — Coller ici l'URL Google Apps Script avant publication
+// ═══════════════════════════════════════════════════════════════════════════
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxAcSxX0gp_OMD_DreugvJLvO2QYkqCpv_lmLUP4Bzww9fbfFkPaquzq0_zzQ1kurzANg/exec';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QUESTIONS DU QUIZ
+// ═══════════════════════════════════════════════════════════════════════════
+const QUESTIONS = [
+  {
+    theme: "Qu'est-ce que MASE ?",
+    question: "Que signifie l'acronyme MASE ?",
+    options: [
+      "Méthode d'Analyse et de Suivi des Entreprises",
+      "Manuel d'Amélioration Sécurité des Entreprises",
+      "Management Avancé de la Sécurité en Entreprise",
+      "Méthode d'Audit et de Sécurité Environnementale"
+    ],
+    correct: 1,
+    explanation: "MASE signifie « Manuel d'Amélioration Sécurité des Entreprises ». C'est un référentiel créé en 1994, qui fédère plus de 20 000 entreprises certifiées en France."
+  },
+  {
+    theme: "Certif. MASE",
+    question: "Quelle est la durée d'une certification MASE ?",
+    options: ["1 an", "2 ans", "3 ans", "5 ans"],
+    correct: 2,
+    explanation: "La certification MASE est valable 3 ans. Des audits intermédiaires sont réalisés pour maintenir le niveau de conformité entre les deux certifications."
+  },
+  {
+    theme: "Les 5 axes",
+    question: "Combien d'axes comporte le référentiel MASE ?",
+    options: ["3", "4", "5", "6"],
+    correct: 2,
+    explanation: "Le référentiel MASE est structuré autour de 5 axes, chacun représentant 20% de la note finale lors de l'audit de certification."
+  },
+  {
+    theme: "Axe 1 – Direction",
+    question: "Quel est le rôle de la Direction dans la démarche MASE (Axe 1) ?",
+    options: [
+      "Uniquement signer les documents administratifs",
+      "Définir la politique HSE, fixer des objectifs chiffrés et allouer les ressources",
+      "Déléguer entièrement la sécurité au responsable HSE",
+      "Réaliser les audits externes"
+    ],
+    correct: 1,
+    explanation: "L'Axe 1 exige que la direction s'engage formellement : signer une politique sécurité, fixer des objectifs mesurables, allouer un budget dédié et organiser une revue de direction annuelle."
+  },
+  {
+    theme: "Axe 2 – Compétences",
+    question: "Que doit contenir le plan de formation annuel d'AP2I dans le cadre de MASE ?",
+    options: [
+      "Uniquement les formations techniques métier",
+      "Un volet sécurité HSE intégré",
+      "Des formations sur les outils informatiques",
+      "Des modules de management uniquement"
+    ],
+    correct: 1,
+    explanation: "L'Axe 2 impose d'intégrer le volet sécurité dans le plan de formation annuel, incluant les habilitations, les accueils sécurité et les formations HSE spécifiques."
+  },
+  {
+    theme: "Axe 3 – Organisation",
+    question: "Avant de démarrer une intervention, que doit obligatoirement réaliser un salarié selon l'Axe 3 ?",
+    options: [
+      "Envoyer un email à son responsable",
+      "Vérifier son planning de la semaine",
+      "Lire et signer le plan de prévention ou le permis de travail",
+      "Appeler le service RH"
+    ],
+    correct: 2,
+    explanation: "L'Axe 3 (Préparation du travail) exige de consulter et signer les documents de prévention (plan de prévention, PDU, permis de travail) avant toute intervention à risque."
+  },
+  {
+    theme: "Axe 4 – Management",
+    question: "Qu'est-ce qu'un « presqu'accident » dans le cadre du suivi MASE (Axe 4) ?",
+    options: [
+      "Un accident qui n'a pas été déclaré",
+      "Une situation dangereuse qui aurait pu provoquer un accident mais ne l'a pas fait",
+      "Un accident de trajet",
+      "Un incident survenu à un sous-traitant"
+    ],
+    correct: 1,
+    explanation: "Un presqu'accident est une situation qui aurait pu causer un accident sans en avoir les conséquences. Sa déclaration obligatoire permet d'agir préventivement avant qu'un véritable accident ne survienne."
+  },
+  {
+    theme: "Axe 5 – Amélioration",
+    question: "Que signifie PAPRIPACT ?",
+    options: [
+      "Plan d'Action pour la Prévention des Risques et l'Amélioration des Conditions de Travail",
+      "Programme Annuel de Prévention des Risques Professionnels et d'Amélioration des Conditions de Travail",
+      "Protocole d'Application des Procédures de Risques Professionnels et Contrôle du Travail",
+      "Plan Annuel de Protection des Risques Industriels et des Accidents au Travail"
+    ],
+    correct: 1,
+    explanation: "PAPRIPACT = Programme Annuel de Prévention des Risques Professionnels et d'Amélioration des Conditions de Travail. C'est le document central de l'Axe 5 (Amélioration continue) chez AP2I."
+  },
+  {
+    theme: "Risque Machines",
+    question: "Face à un outil défectueux sur votre poste de travail, quelle est la bonne conduite ?",
+    options: [
+      "Continuer à l'utiliser avec précaution",
+      "L'utiliser en portant des EPI supplémentaires",
+      "Le modifier pour le faire fonctionner",
+      "Arrêter l'utilisation et signaler immédiatement l'anomalie"
+    ],
+    correct: 3,
+    explanation: "Tout outil défectueux doit être immédiatement mis hors service et signalé. Continuer à l'utiliser, même avec des précautions, expose le salarié et ses collègues à un risque grave."
+  },
+  {
+    theme: "Risque Électrique",
+    question: "Quelle est la condition OBLIGATOIRE pour intervenir sur une installation électrique ?",
+    options: [
+      "Être accompagné d'un collègue",
+      "Porter des gants de travail standards",
+      "Posséder une habilitation électrique valide",
+      "Prévenir son chef d'équipe à l'avance"
+    ],
+    correct: 2,
+    explanation: "Aucune intervention sur une installation électrique ne peut être réalisée sans habilitation électrique valide et à jour. L'habilitation B0E/B0 est le minimum requis pour tous les salariés AP2I."
+  },
+  {
+    theme: "Risque Circulation",
+    question: "En zone de circulation d'engins, quelle mesure est indispensable pour un piéton ?",
+    options: [
+      "Marcher rapidement pour traverser la zone",
+      "Porter le gilet haute visibilité et respecter les voies piétonnes balisées",
+      "Attendre que tous les engins soient arrêtés",
+      "Demander à un chauffeur de l'accompagner"
+    ],
+    correct: 1,
+    explanation: "En zone de coactivité piétons/engins, le port du gilet haute visibilité est obligatoire et les voies piétonnes balisées doivent être strictement respectées."
+  },
+  {
+    theme: "Chutes plain-pied",
+    question: "Les chutes de plain-pied représentent quelle position dans les causes d'accidents du travail en France ?",
+    options: ["2e cause", "3e cause", "1ère cause", "5e cause"],
+    correct: 2,
+    explanation: "Les chutes de plain-pied sont la 1ère cause d'accidents du travail en France. Chez AP2I, cela implique de maintenir les allées dégagées, signaler tout sol glissant et porter des chaussures de sécurité conformes."
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+let state = {
+  screen: 'participant', // participant | quiz | results
+  participant: { nom: '', prenom: '', poste: '' },
+  current: 0,
+  selected: null,
+  answered: false,
+  answers: [], // { q, selected, correct, ok }
+  startTime: null,
+  trackingStatus: null // null | sending | sent | error
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════════════════
+function render() {
+  const app = document.getElementById('app');
+  if (state.screen === 'participant') app.innerHTML = renderParticipant();
+  else if (state.screen === 'quiz') app.innerHTML = renderQuiz();
+  else app.innerHTML = renderResults();
+  bindEvents();
+}
+
+function renderParticipant() {
+  return `
+    <div class="participant-card">
+      <h2>Bienvenue dans le quiz MASE 🛡️</h2>
+      <p>Renseignez vos informations avant de commencer. Vos résultats seront enregistrés automatiquement.</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prénom *</label>
+          <input type="text" id="prenom" placeholder="Votre prénom" value="${state.participant.prenom}">
+        </div>
+        <div class="form-group">
+          <label>Nom *</label>
+          <input type="text" id="nom" placeholder="Votre nom" value="${state.participant.nom}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Poste / Service</label>
+          <input type="text" id="poste" placeholder="Ex : Technicien, Commercial…" value="${state.participant.poste}">
+        </div>
+      </div>
+      <button class="btn-start" id="btn-start">Commencer le quiz →</button>
+    </div>
+  `;
+}
+
+function renderQuiz() {
+  const q = QUESTIONS[state.current];
+  const progress = ((state.current) / QUESTIONS.length) * 100;
+  const letters = ['A', 'B', 'C', 'D'];
+
+  let optionsHtml = q.options.map((opt, i) => {
+    let cls = 'option';
+    let icon = '';
+    if (state.answered) {
+      cls += ' locked';
+      if (i === q.correct) { cls += ' correct'; icon = '✅'; }
+      else if (i === state.selected && i !== q.correct) { cls += ' wrong'; icon = '❌'; }
+    } else {
+      if (i === state.selected) cls += ' selected';
+    }
+    return `
+      <div class="${cls}" data-index="${i}">
+        <span class="option-letter">${letters[i]}</span>
+        <span class="option-text">${opt}</span>
+        <span class="option-icon">${icon}</span>
+      </div>`;
+  }).join('');
+
+  let explanationHtml = '';
+  if (state.answered) {
+    const ok = state.selected === q.correct;
+    explanationHtml = `
+      <div class="explanation ${ok ? 'correct' : 'wrong'}">
+        ${ok ? '✅ Bonne réponse !' : '❌ Mauvaise réponse.'} ${q.explanation}
+      </div>`;
+  }
+
+  const isLast = state.current === QUESTIONS.length - 1;
+  const btnLabel = isLast ? 'Voir mes résultats 🎯' : 'Question suivante →';
+
+  return `
+    <div class="progress-label">
+      <span>Question ${state.current + 1} / ${QUESTIONS.length}</span>
+      <span>${Math.round(progress)}% complété</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" style="width:${progress}%"></div>
+    </div>
+
+    <div class="question-card">
+      <div class="question-meta">
+        <span class="question-num">Q${state.current + 1}</span>
+        <span class="question-theme">${q.theme}</span>
+      </div>
+      <div class="question-text">${q.question}</div>
+      <div class="options" id="options">${optionsHtml}</div>
+      ${explanationHtml}
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-next" id="btn-next" ${!state.answered ? 'disabled' : ''}>${btnLabel}</button>
+    </div>
+  `;
+}
+
+function renderResults() {
+  const score = state.answers.filter(a => a.ok).length;
+  const total = QUESTIONS.length;
+  const pct = Math.round((score / total) * 100);
+  const dur = Math.round((Date.now() - state.startTime) / 60000);
+  const wrong = state.answers.filter(a => !a.ok).length;
+
+  let circleClass = pct >= 80 ? 'excellent' : pct >= 60 ? 'good' : 'fail';
+  let msg = pct >= 80 ? '🎉 Félicitations ! Vous maîtrisez bien la démarche MASE.'
+          : pct >= 60 ? '👍 Bon résultat ! Quelques points à consolider.'
+          : '📚 Des révisions sont nécessaires. N\'hésitez pas à revoir le support de formation.';
+
+  const reviewHtml = state.answers.map((a, i) => `
+    <div class="review-item ${a.ok ? 'ok' : 'ko'}">
+      <span class="review-dot">${a.ok ? '✅' : '❌'}</span>
+      <div>
+        <div class="review-q">Q${i+1} – ${QUESTIONS[i].theme}</div>
+        <div class="review-a">${a.ok ? 'Bonne réponse' : `Votre réponse : "${QUESTIONS[i].options[a.selected]}" – Correcte : "${QUESTIONS[i].options[QUESTIONS[i].correct]}"`}</div>
+      </div>
+    </div>
+  `).join('');
+
+  let trackingHtml = '';
+  if (state.trackingStatus === 'sending') trackingHtml = '<div class="tracking-status sending">⏳ Envoi vers Google Sheets en cours…</div>';
+  if (state.trackingStatus === 'sent')    trackingHtml = '<div class="tracking-status sent">✅ Résultats enregistrés dans Google Sheets avec succès !</div>';
+  if (state.trackingStatus === 'error')   trackingHtml = '<div class="tracking-status error">⚠️ Impossible d\'envoyer vers Google Sheets. Vérifiez l\'URL configurée.</div>';
+
+  return `
+    <div class="results-card">
+      <div class="score-circle ${circleClass}">
+        <span class="score-val">${pct}%</span>
+        <span class="score-lbl">${score}/${total}</span>
+      </div>
+      <div class="results-title">${state.participant.prenom} ${state.participant.nom}</div>
+      <div class="results-sub">${msg}</div>
+
+      <div class="results-grid">
+        <div class="results-stat"><div class="val" style="color:var(--success)">${score}</div><div class="lbl">Bonnes réponses</div></div>
+        <div class="results-stat"><div class="val" style="color:var(--danger)">${wrong}</div><div class="lbl">Erreurs</div></div>
+        <div class="results-stat"><div class="val">${dur} min</div><div class="lbl">Durée</div></div>
+      </div>
+
+      ${trackingHtml}
+
+      <div style="margin-top:24px;">
+        <div class="review-title">📝 Détail de vos réponses</div>
+        ${reviewHtml}
+      </div>
+
+      <button class="btn-restart" onclick="restart()">🔄 Recommencer le quiz</button>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EVENTS
+// ═══════════════════════════════════════════════════════════════════════════
+function bindEvents() {
+  if (state.screen === 'participant') {
+    const btn = document.getElementById('btn-start');
+    if (btn) btn.addEventListener('click', startQuiz);
+  }
+  if (state.screen === 'quiz') {
+    document.querySelectorAll('.option:not(.locked)').forEach(el => {
+      el.addEventListener('click', () => selectOption(parseInt(el.dataset.index)));
+    });
+    const nextBtn = document.getElementById('btn-next');
+    if (nextBtn && !nextBtn.disabled) nextBtn.addEventListener('click', nextQuestion);
+  }
+}
+
+
+function startQuiz() {
+  const prenom = document.getElementById('prenom').value.trim();
+  const nom = document.getElementById('nom').value.trim();
+  const poste = document.getElementById('poste').value.trim();
+  if (!prenom || !nom) { alert('Merci de renseigner votre prénom et nom.'); return; }
+  state.participant = { prenom, nom, poste };
+  state.screen = 'quiz';
+  state.startTime = Date.now();
+  state.current = 0;
+  state.answers = [];
+  state.selected = null;
+  state.answered = false;
+  render();
+}
+
+function selectOption(idx) {
+  if (state.answered) return;
+  state.selected = idx;
+  state.answered = true;
+  const q = QUESTIONS[state.current];
+  state.answers.push({ q: state.current, selected: idx, correct: q.correct, ok: idx === q.correct });
+  render();
+}
+
+function nextQuestion() {
+  if (state.current < QUESTIONS.length - 1) {
+    state.current++;
+    state.selected = null;
+    state.answered = false;
+    render();
+  } else {
+    state.screen = 'results';
+    state.trackingStatus = null;
+    render();
+    sendToSheets();
+  }
+}
+
+function restart() {
+  state.screen = 'participant';
+  state.answers = [];
+  state.current = 0;
+  state.selected = null;
+  state.answered = false;
+  state.trackingStatus = null;
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GOOGLE SHEETS TRACKING
+// ═══════════════════════════════════════════════════════════════════════════
+async function sendToSheets() {
+  if (!SHEETS_URL) return;
+
+  state.trackingStatus = 'sending';
+  render();
+
+  const score = state.answers.filter(a => a.ok).length;
+  const total = QUESTIONS.length;
+  const pct = Math.round((score / total) * 100) + '%';
+  const dur = Math.round((Date.now() - state.startTime) / 60000);
+  const now = new Date();
+  const details = state.answers.map((a, i) =>
+    `Q${i+1}:${a.ok ? 'OK' : 'KO'}`
+  ).join(' | ');
+
+  const payload = {
+    date: now.toLocaleDateString('fr-FR'),
+    heure: now.toLocaleTimeString('fr-FR'),
+    prenom: state.participant.prenom,
+    nom: state.participant.nom,
+    poste: state.participant.poste || '-',
+    score: score,
+    total: total,
+    pourcentage: pct,
+    duree: dur,
+    details: details
+  };
+
+  try {
+    await fetch(SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    state.trackingStatus = 'sent';
+  } catch (err) {
+    state.trackingStatus = 'error';
+  }
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+render();
+</script>
+</body>
+</html>
