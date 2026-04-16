@@ -201,26 +201,6 @@
   .tracking-box.pending { background: #FFF7ED; color: var(--warn); }
   .tracking-box.error   { background: #FDECEA; color: var(--danger); }
 
-  /* ── SETUP GUIDE ── */
-  .setup-guide {
-    margin-top: 28px; border: 1.5px solid var(--mid);
-    border-radius: 10px; overflow: hidden;
-  }
-  .setup-guide-header {
-    background: var(--navy); color: white; padding: 10px 16px;
-    font-size: 13px; font-weight: 700; cursor: pointer;
-    display: flex; justify-content: space-between;
-  }
-  .setup-guide-body { display: none; padding: 16px; background: white; }
-  .setup-guide.open .setup-guide-body { display: block; }
-  .setup-guide-body pre {
-    background: #1E2A3B; color: #A8D8EA; padding: 14px;
-    border-radius: 8px; font-size: 12px; overflow-x: auto;
-    margin: 10px 0; line-height: 1.6;
-  }
-  .setup-guide-body ol { padding-left: 18px; font-size: 13px; line-height: 2; color: var(--text); }
-  .setup-guide-body .step-title { font-weight: 700; color: var(--navy); margin-top: 10px; }
-
   /* ── FOOTER ── */
   .footer {
     background: var(--navy); color: #A8BEDD;
@@ -235,9 +215,9 @@
   <span class="header-shield">🛡️</span>
   <div>
     <div class="header-title">Quiz MASE – AP2I</div>
-    <div class="header-sub">Risques liés aux machines et aux outils · Objectif N°1 · Avril 2026</div>
+    <div class="header-sub">Risques liés aux machines et aux outils · Avril 2026</div>
   </div>
-  <div class="header-badge">MASE v2024</div>
+
 </div>
 
 <!-- MAIN -->
@@ -245,7 +225,7 @@
 
 <!-- FOOTER -->
 <div class="footer">
-  AP2I – Filiale TREMA Multitechnique · Reims · Formation MASE · Référentiel v2024 · §2.2.2.8
+  AP2I – Filiale TREMA Multitechnique · Reims · Formation Sécurité · Avril 2026
 </div>
 
 <script>
@@ -367,16 +347,16 @@ const QUESTIONS = [
     ref: "Source : Art. R.4324-1 C. trav."
   },
   {
-    q: "Parmi les équipements de protection individuelle suivants, lequel est adapté au risque de coupure lors de la manipulation de câbles ou de tôles à bords vifs ?",
+    q: "Un technicien doit intervenir à proximité d'un engrenage non protégé. Son responsable lui propose deux solutions : (A) remettre en place le carter d'origine, (B) lui fournir des gants renforcés. Laquelle est réglementairement prioritaire, et pourquoi ?",
     choices: [
-      "Des gants anti-vibrations (EN 10819)",
-      "Des gants anti-coupure (EN 388)",
-      "Des gants isolants électriques (EN 60903)",
-      "Des gants de manutention thermique (EN 407)"
+      "La solution B, car les EPI sont plus rapides à mettre en œuvre et tout aussi efficaces",
+      "Les deux solutions sont équivalentes : c'est au technicien de choisir selon sa préférence",
+      "La solution A, car les mesures de protection collective priment toujours sur les EPI",
+      "La solution B, car les carters gênent l'accès lors des opérations de maintenance"
     ],
-    answer: 1,
-    expl: "Les gants anti-coupure conformes à la norme EN 388 sont l'EPI adapté au risque de coupure. Leur indice de résistance à la coupure doit être au minimum de niveau 2. Il est impératif de vérifier leur état avant chaque utilisation : un gant usé ne protège plus.",
-    ref: "Source : Art. R.4323-95 C. trav. – Norme EN 388"
+    answer: 2,
+    expl: "Le Code du travail fixe un ordre de priorité strict dans les principes généraux de prévention : les mesures de protection collective (EPC) doivent être mises en œuvre avant les équipements de protection individuelle (EPI). Remettre le carter est donc obligatoirement la première action à engager. Les EPI ne compensent un risque résiduel que lorsque la protection collective est impossible ou insuffisante.",
+    ref: "Source : Art. L.4121-2 C. trav. – Principes généraux de prévention, 8e principe"
   }
 ];
 
@@ -414,8 +394,7 @@ function renderParticipant() {
         <span class="topic-icon">⚙️</span>
         <div>
           <h3>Formation : Risques liés aux machines et aux outils</h3>
-          <p>10 questions · Identification des dangers · Vérification équipements · Dispositifs de sécurité · EPI<br>
-          Objectif MASE N°1 · Référentiel MASE v2024 · Axes 2 & 3</p>
+          <p>10 questions · Identification des dangers · Vérification équipements · Dispositifs de sécurité · EPI</p>
         </div>
       </div>
 
@@ -439,60 +418,8 @@ function renderParticipant() {
       <button class="btn-start" onclick="startQuiz()">Commencer le quiz →</button>
     </div>
 
-    <div class="setup-guide" id="sgGuide">
-      <div class="setup-guide-header" onclick="toggleGuide()">
-        🔧 Guide administrateur — Connexion Google Sheets
-        <span id="sgChev">▶</span>
-      </div>
-      <div class="setup-guide-body">
-        <p style="font-size:13px;color:#607090;margin-bottom:8px;">
-          <strong>Même configuration qu'en mars 2026</strong> — si vous avez déjà déployé le script Apps Script,
-          il suffit de renseigner l'URL ci-dessous (même URL, nouvelle version du script recommandée).
-        </p>
-        <ol>
-          <li><span class="step-title">Ouvrir le Google Sheets de résultats</span> (celui créé en mars)</li>
-          <li>Aller dans <strong>Extensions → Apps Script</strong> et remplacer le code par :</li>
-        </ol>
-        <pre>function doPost(e) {
-  try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet()
-                  .getSheetByName("Feuille 1");
-    var data  = JSON.parse(e.postData.contents);
-    sheet.appendRow([
-      data.date, data.heure, data.prenom, data.nom,
-      data.poste, data.score, data.total,
-      data.pourcentage, data.duree, data.details
-    ]);
-    return ContentService
-      .createTextOutput(JSON.stringify({status:"ok"}))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({status:"error",msg:err.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-function doGet(e) {
-  return ContentService.createTextOutput("OK");
-}</pre>
-        <ol start="3">
-          <li>Cliquer sur <strong>Déployer → Nouveau déploiement → Application Web</strong></li>
-          <li>Accès : <strong>Tout le monde</strong> · Exécuter en tant que : <strong>Moi</strong></li>
-          <li>Copier l'URL générée et la coller dans <code>const SHEETS_URL = '...'</code> en tête de ce fichier</li>
-          <li>Enregistrer le fichier et le redéployer sur GitHub Pages (dépôt : <code>digitalid-code/quiz-mase-ap2i</code>)</li>
-        </ol>
-        <p style="font-size:12px;color:#B91C1C;margin-top:8px;">
-          ⚠️ Les colonnes du Sheet doivent être : Date | Heure | Prénom | Nom | Poste | Score | Total | Pourcentage | Durée (min) | Réponses détaillées
-        </p>
-      </div>
-    </div>
-  `;
-}
 
-function toggleGuide() {
-  const g = document.getElementById('sgGuide');
-  g.classList.toggle('open');
-  document.getElementById('sgChev').textContent = g.classList.contains('open') ? '▼' : '▶';
+  `;
 }
 
 function startQuiz() {
@@ -529,7 +456,7 @@ function renderQuiz() {
     </div>
 
     <div class="question-card">
-      <div class="question-meta">Risques machines & outils · Objectif MASE N°1</div>
+      <div class="question-meta">Risques machines & outils</div>
       <div class="question-text">${q.q}</div>
 
       <div class="options" id="optList">
