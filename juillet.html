@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Sécurité – AP2I – Chute de plain-pied</title>
+<style>
+  :root {
+    --navy:    #1B3A6B;
+    --orange:  #E8521A;
+    --light:   #F4F6F9;
+    --white:   #FFFFFF;
+    --text:    #1C2B42;
+    --muted:   #607090;
+    --success: #1E7E34;
+    --danger:  #B91C1C;
+    --warn:    #D97706;
+    --mid:     #D0D9E8;
+    --shadow:  0 4px 16px rgba(27,58,107,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Calibri, Arial, sans-serif; background: var(--light); color: var(--text); min-height: 100vh; }
+
+  .header {
+    background: var(--navy); padding: 18px 32px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  .header-shield { font-size: 28px; }
+  .header-title { color: white; font-size: 18px; font-weight: 700; }
+  .header-sub { color: #A8BEDD; font-size: 12px; margin-top: 2px; }
+
+  .main { max-width: 800px; margin: 0 auto; padding: 32px 16px 64px; }
+
+  .participant-card {
+    background: white; border-radius: 12px;
+    padding: 32px; box-shadow: var(--shadow);
+    border-top: 4px solid var(--orange);
+  }
+  .participant-card h2 { color: var(--navy); font-size: 20px; margin-bottom: 8px; }
+  .participant-card p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .form-row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .form-group { flex: 1; min-width: 200px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+  .form-group input {
+    width: 100%; padding: 10px 14px; border: 1.5px solid var(--mid);
+    border-radius: 8px; font-size: 14px; color: var(--text);
+    background: var(--light); transition: border 0.2s;
+  }
+  .form-group input:focus { outline: none; border-color: var(--navy); background: white; }
+
+  .topic-banner {
+    background: var(--navy); color: white;
+    border-radius: 10px; padding: 16px 20px;
+    margin-bottom: 24px; display: flex; gap: 14px; align-items: flex-start;
+  }
+  .topic-banner .topic-icon { font-size: 28px; flex-shrink: 0; }
+  .topic-banner h3 { font-size: 16px; margin-bottom: 4px; }
+  .topic-banner p { font-size: 12px; color: #A8BEDD; }
+
+  .btn-start {
+    width: 100%; padding: 14px; background: var(--navy);
+    color: white; border: none; border-radius: 8px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: background 0.2s; margin-top: 8px;
+  }
+  .btn-start:hover { background: #142D55; }
+
+  .progress-wrap { margin-bottom: 28px; }
+  .progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .progress-label { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .progress-count { font-size: 13px; color: var(--muted); }
+  .progress-bar { height: 8px; background: var(--mid); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--navy); border-radius: 4px; transition: width 0.4s ease; }
+
+  .question-card {
+    background: white; border-radius: 12px;
+    padding: 28px 32px; box-shadow: var(--shadow);
+    border-top: 4px solid var(--navy);
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .question-meta { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .question-text { font-size: 17px; font-weight: 700; color: var(--navy); line-height: 1.5; margin-bottom: 24px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 13px 18px; border: 2px solid var(--mid);
+    border-radius: 10px; cursor: pointer; display: flex; gap: 12px;
+    align-items: flex-start; background: var(--light); transition: all 0.18s;
+    font-size: 14px; color: var(--text); line-height: 1.4;
+  }
+  .option:hover:not(.disabled) { border-color: var(--navy); background: #EDF2FA; }
+  .option .opt-letter {
+    font-size: 12px; font-weight: 700; color: var(--navy);
+    background: var(--mid); border-radius: 50%;
+    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .option.correct  { border-color: var(--success); background: #EBF8F0; }
+  .option.wrong    { border-color: var(--danger);  background: #FDECEA; }
+  .option.correct .opt-letter { background: var(--success); color: white; }
+  .option.wrong .opt-letter   { background: var(--danger);  color: white; }
+  .option.disabled { cursor: default; }
+
+  .feedback {
+    margin-top: 20px; padding: 14px 18px; border-radius: 10px;
+    font-size: 13.5px; line-height: 1.55; animation: fadeIn 0.3s ease;
+  }
+  .feedback.correct-fb { background: #EBF8F0; border-left: 4px solid var(--success); color: #154A22; }
+  .feedback.wrong-fb   { background: #FDECEA; border-left: 4px solid var(--danger);  color: #7B1C1C; }
+  .feedback .fb-title  { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .feedback .fb-ref    { font-size: 11.5px; color: var(--muted); margin-top: 6px; font-style: italic; }
+
+  .btn-next {
+    margin-top: 20px; padding: 11px 28px; background: var(--navy);
+    color: white; border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-next:hover { background: #142D55; }
+
+  .results-card {
+    background: white; border-radius: 12px;
+    padding: 36px 32px; box-shadow: var(--shadow);
+    border-top: 4px solid var(--orange); animation: fadeIn 0.3s ease;
+  }
+  .results-card h2 { color: var(--navy); font-size: 22px; margin-bottom: 8px; }
+
+  .score-ring-wrap { display: flex; flex-direction: column; align-items: center; margin: 24px 0; }
+  .score-circle {
+    width: 140px; height: 140px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin-bottom: 12px; font-weight: 700;
+  }
+  .score-circle .sc-pct { font-size: 36px; color: white; }
+  .score-circle .sc-raw { font-size: 14px; color: rgba(255,255,255,0.85); margin-top: 2px; }
+  .score-success { background: var(--success); }
+  .score-partial { background: var(--warn); }
+  .score-fail    { background: var(--danger); }
+  .score-message { font-size: 15px; font-weight: 700; color: var(--navy); text-align: center; }
+  .score-sub     { font-size: 13px; color: var(--muted); text-align: center; margin-top: 4px; }
+
+  .stats-row { display: flex; gap: 12px; margin: 20px 0; flex-wrap: wrap; }
+  .stat-box { flex: 1; min-width: 100px; background: var(--light); border-radius: 8px; padding: 14px; text-align: center; }
+  .stat-box .sb-val { font-size: 22px; font-weight: 700; color: var(--navy); }
+  .stat-box .sb-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .review-list { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .review-item { border-radius: 8px; overflow: hidden; border: 1.5px solid var(--mid); }
+  .review-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; cursor: pointer; background: var(--light);
+  }
+  .review-icon { font-size: 16px; flex-shrink: 0; }
+  .review-q { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
+  .review-chevron { color: var(--muted); font-size: 12px; transition: transform 0.2s; }
+  .review-item.open .review-chevron { transform: rotate(90deg); }
+  .review-body { display: none; padding: 12px 14px; font-size: 13px; background: white; border-top: 1px solid var(--mid); }
+  .review-item.open .review-body { display: block; }
+  .review-body .rv-your    { color: var(--danger); margin-bottom: 4px; }
+  .review-body .rv-correct { color: var(--success); margin-bottom: 4px; }
+  .review-body .rv-expl    { color: var(--muted); font-style: italic; font-size: 12px; }
+
+  .tracking-box {
+    margin-top: 20px; padding: 12px 16px; border-radius: 8px;
+    font-size: 13px; display: flex; align-items: center; gap: 10px;
+  }
+  .tracking-box.sent    { background: #EBF8F0; color: var(--success); }
+  .tracking-box.pending { background: #FFF7ED; color: var(--warn); }
+  .tracking-box.error   { background: #FDECEA; color: var(--danger); }
+
+  .footer {
+    background: var(--navy); color: #A8BEDD;
+    text-align: center; padding: 14px 16px; font-size: 11px; margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-shield">🚧</span>
+  <div>
+    <div class="header-title">Quiz Sécurité – AP2I</div>
+    <div class="header-sub">Chute de plain-pied : prévention et ordre sur chantier · Juillet 2026</div>
+  </div>
+</div>
+
+<div class="main" id="app"></div>
+
+<div class="footer">
+  AP2I – Filiale TREMA Multitechnique · Reims · Formation Sécurité · Juillet 2026
+</div>
+
+<script>
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxAcSxX0gp_OMD_DreugvJLvO2QYkqCpv_lmLUP4Bzww9fbfFkPaquzq0_zzQ1kurzANg/exec'; 
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QUESTIONS
+// ═══════════════════════════════════════════════════════════════════════════
+const QUESTIONS = [
+  {
+    q: "Qu'appelle-t-on une « chute de plain-pied » ?",
+    choices: [
+      "Une chute depuis une échelle ou un échafaudage",
+      "Une chute survenant sur une surface plane, sans dénivellation notable",
+      "Une chute dans une trémie ou une fosse",
+      "Uniquement une chute causée par un sol mouillé"
+    ],
+    answer: 1,
+    expl: "La chute de plain-pied survient sur une surface plane ou faiblement inclinée, sans dénivellation notable : glissade, trébuchement ou faux pas. Elle se distingue de la chute de hauteur. Le sol mouillé n'est qu'une cause parmi d'autres.",
+    ref: "Source externe : INRS (dossier chutes de plain-pied)"
+  },
+  {
+    q: "Parmi ces éléments, lequel N'EST PAS une cause fréquente de chute de plain-pied ?",
+    choices: [
+      "Un sol glissant (eau, huile, graisse)",
+      "Des câbles ou rallonges traînant au sol",
+      "Un éclairage insuffisant de la zone",
+      "Le port systématique de chaussures de sécurité"
+    ],
+    answer: 3,
+    expl: "Sol glissant, encombrements (câbles, matériel) et éclairage insuffisant sont des causes classiques. À l'inverse, le port de chaussures de sécurité antidérapantes est un moyen de prévention, pas une cause.",
+    ref: "Source externe : INRS"
+  },
+  {
+    q: "On distingue habituellement trois familles de causes des chutes de plain-pied. Lesquelles ?",
+    choices: [
+      "Le vent, la pluie et le froid",
+      "L'état du sol, les encombrements et d'autres facteurs (éclairage, allure, coactivité)",
+      "La fatigue, le stress et le bruit",
+      "Les machines, l'électricité et les produits chimiques"
+    ],
+    answer: 1,
+    expl: "On regroupe généralement les causes en trois familles : l'état du sol (glissant, dégradé, irrégulier), les encombrements (câbles, matériel non rangé, passages obstrués) et d'autres facteurs (éclairage insuffisant, chaussures inadaptées, précipitation, coactivité mal organisée).",
+    ref: "Source externe : INRS"
+  },
+  {
+    q: "Vous repérez une flaque d'huile au sol dans une zone de passage. Quelle est la meilleure conduite à tenir ?",
+    choices: [
+      "L'enjamber et continuer, ce n'est pas votre poste",
+      "La signaler/baliser puis nettoyer immédiatement l'épanchement",
+      "Attendre la fin de la journée pour prévenir le responsable",
+      "Poser un carton dessus pour absorber"
+    ],
+    answer: 1,
+    expl: "Un épanchement au sol doit être signalé/balisé sans délai, puis nettoyé immédiatement. Le laisser ou le masquer (carton) crée un piège pour soi et pour les autres intervenants.",
+    ref: "Source externe : bonnes pratiques INRS"
+  },
+  {
+    q: "Comment doit-on signaler une zone à risque de chute (sol mouillé, câble traversant) ?",
+    choices: [
+      "Ce n'est pas nécessaire si l'on est seul sur la zone",
+      "Par un balisage physique et/ou une signalétique normalisée, retirés dès que le danger disparaît",
+      "En envoyant seulement un e-mail au responsable",
+      "En prévenant uniquement oralement une personne"
+    ],
+    answer: 1,
+    expl: "Une zone à risque se signale par un balisage physique (barrières, rubalise, cônes) et/ou une signalétique normalisée (panneau « sol glissant », pictogrammes). La signalisation doit être levée dès que le danger a disparu pour rester crédible.",
+    ref: "Source externe : Code du travail (signalisation santé-sécurité) / INRS"
+  },
+  {
+    q: "En matière de manutention à pied sur un chantier, quelle pratique limite le risque de chute ?",
+    choices: [
+      "Porter une charge qui masque la vue pour aller plus vite",
+      "Anticiper et dégager le parcours avant de transporter la charge",
+      "Courir pour réduire le temps de port",
+      "Empiler le maximum pour faire moins de trajets"
+    ],
+    answer: 1,
+    expl: "Avant de manutentionner, on anticipe et on dégage le parcours, on adapte l'allure au sol et on évite de masquer sa vue avec la charge. Précipitation et vue obstruée sont des facteurs aggravants de chute.",
+    ref: "Source externe : bonnes pratiques INRS"
+  },
+  {
+    q: "Concernant les chaussures de sécurité comme protection contre les chutes de plain-pied :",
+    choices: [
+      "Elles suffisent à elles seules à éliminer le risque",
+      "Elles constituent la dernière barrière et complètent l'ordre et la propreté des lieux",
+      "Leur état d'usure n'a aucune importance",
+      "Elles remplacent le balisage des zones à risque"
+    ],
+    answer: 1,
+    expl: "La chaussure antidérapante est la dernière barrière (EPI) : elle complète, sans les remplacer, la suppression du danger, le balisage et le rangement. Une semelle usée perd son adhérence : elle doit être vérifiée et remplacée.",
+    ref: "Source externe : bonnes pratiques INRS"
+  },
+  {
+    q: "Face à un risque de chute, dans quel ordre de priorité faut-il agir ?",
+    choices: [
+      "Distribuer des EPI, puis éventuellement ranger",
+      "Éviter le risque à la source, puis protéger collectivement, et en dernier recours l'EPI",
+      "Uniquement signaler, sans rien changer au sol",
+      "Attendre l'audit MASE pour décider"
+    ],
+    answer: 1,
+    expl: "Les principes généraux de prévention s'appliquent dans l'ordre : éviter le risque, l'évaluer, le combattre à la source, protéger collectivement (balisage, éclairage, organisation), et n'utiliser l'EPI qu'en dernier recours.",
+    ref: "Ancré MASE v2024 : principes généraux de prévention appliqués dans l'ordre de priorité"
+  },
+  {
+    q: "Vous intervenez sur une armoire électrique en site client. Vos câbles, rallonges et outillage sont étalés au sol dans une zone de passage partagée avec d'autres intervenants. Quelle est la meilleure conduite à tenir ?",
+    choices: [
+      "Laisser en l'état : ranger uniquement à la fin de la journée",
+      "Organiser le cheminement des câbles, dégager la zone de passage et ranger l'outillage au fur et à mesure",
+      "Signaler oralement à une seule personne et continuer",
+      "Déplacer le matériel dans une autre zone de passage"
+    ],
+    answer: 1,
+    expl: "En zone de passage et de coactivité, on organise le cheminement des câbles (passages de câbles, fixation au sol), on maintient la zone de circulation dégagée et on range l'outillage au fur et à mesure. Laisser traîner le matériel ou le déplacer vers un autre passage ne fait que déplacer le risque de trébuchement pour soi comme pour les autres intervenants.",
+    ref: "Cas terrain AP2I (intervention armoire/TGBT en coactivité)"
+  },
+  {
+    q: "Vous terminez une intervention sur un site client. Il vous reste 15 minutes avant de partir et du matériel est encore réparti dans la zone de travail. Quelle est la meilleure conduite à tenir ?",
+    choices: [
+      "Partir directement, le nettoyage n'est pas votre rôle",
+      "Replier l'ensemble du matériel et nettoyer la zone d'intervention avant de quitter le site",
+      "Laisser le matériel sur place pour la prochaine intervention",
+      "Ranger uniquement si un salarié du client le demande"
+    ],
+    answer: 1,
+    expl: "En fin de chantier, on replie l'ensemble du matériel et on nettoie la zone d'intervention avant de partir. Une zone laissée encombrée ou souillée devient un risque de chute pour les personnes qui y circuleront ensuite : ranger et nettoyer fait partie de l'intervention, pas d'une étape optionnelle.",
+    ref: "Cas terrain AP2I (repli et nettoyage en fin de chantier)"
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+const state = {
+  screen: 'participant',
+  participant: { prenom: '', nom: '', poste: '' },
+  current: 0,
+  answers: [],
+  startTime: null,
+  trackingStatus: 'pending',
+};
+
+const app = document.getElementById('app');
+
+function render() {
+  if (state.screen === 'participant') renderParticipant();
+  else if (state.screen === 'quiz')   renderQuiz();
+  else                                renderResults();
+}
+
+// ── PARTICIPANT ───────────────────────────────────────────────────────────
+function renderParticipant() {
+  app.innerHTML = `
+    <div class="participant-card">
+      <h2>Vos informations</h2>
+      <p>Renseignez vos coordonnées avant de commencer. Vos résultats seront transmis automatiquement.</p>
+
+      <div class="topic-banner">
+        <span class="topic-icon">🚧</span>
+        <div>
+          <h3>Formation : Chute de plain-pied et ordre sur chantier</h3>
+          <p>10 questions · Causes des chutes · Signalisation des zones · Organisation & manutention · EPI</p>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="prenom">Prénom *</label>
+          <input type="text" id="prenom" placeholder="Votre prénom" value="${state.participant.prenom}">
+        </div>
+        <div class="form-group">
+          <label for="nom">Nom *</label>
+          <input type="text" id="nom" placeholder="Votre nom" value="${state.participant.nom}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="poste">Poste / Fonction</label>
+          <input type="text" id="poste" placeholder="Ex : Électricien industriel, Automaticien…" value="${state.participant.poste !== '-' ? state.participant.poste : ''}">
+        </div>
+      </div>
+      <button class="btn-start" onclick="startQuiz()">Commencer le quiz →</button>
+    </div>
+  `;
+}
+
+function startQuiz() {
+  const p = document.getElementById('prenom').value.trim();
+  const n = document.getElementById('nom').value.trim();
+  const po = document.getElementById('poste').value.trim();
+  if (!p || !n) { alert('Veuillez renseigner votre prénom et votre nom.'); return; }
+  state.participant = { prenom: p, nom: n, poste: po || '-' };
+  state.current = 0; state.answers = [];
+  state.startTime = Date.now(); state.screen = 'quiz';
+  render();
+}
+
+// ── QUIZ ──────────────────────────────────────────────────────────────────
+function renderQuiz() {
+  const idx = state.current;
+  const total = QUESTIONS.length;
+  const q = QUESTIONS[idx];
+  const answered = state.answers[idx] !== undefined;
+  const chosen = state.answers[idx];
+  const pct = Math.round((idx / total) * 100);
+  const letters = ['A', 'B', 'C', 'D'];
+
+  app.innerHTML = `
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span class="progress-label">Question ${idx + 1} / ${total}</span>
+        <span class="progress-count">${pct}% complété</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>
+
+    <div class="question-card">
+      <div class="question-meta">Chute de plain-pied et ordre sur chantier</div>
+      <div class="question-text">${q.q}</div>
+
+      <div class="options" id="optList">
+        ${q.choices.map((c, i) => {
+          let cls = 'option';
+          if (answered) {
+            cls += ' disabled';
+            if (i === q.answer)  cls += ' correct';
+            else if (i === chosen && i !== q.answer) cls += ' wrong';
+          }
+          return `<div class="${cls}" onclick="selectAnswer(${i})">
+            <span class="opt-letter">${letters[i]}</span>
+            <span>${c}</span>
+          </div>`;
+        }).join('')}
+      </div>
+
+      ${answered ? `
+        <div class="feedback ${chosen === q.answer ? 'correct-fb' : 'wrong-fb'}">
+          <div class="fb-title">${chosen === q.answer ? '✅ Bonne réponse !' : '❌ Réponse incorrecte'}</div>
+          ${q.expl}
+          <div class="fb-ref">${q.ref}</div>
+        </div>
+        <button class="btn-next" onclick="nextQuestion()">
+          ${idx + 1 < total ? 'Question suivante →' : 'Voir mes résultats →'}
+        </button>
+      ` : ''}
+    </div>
+  `;
+}
+
+function selectAnswer(i) {
+  if (state.answers[state.current] !== undefined) return;
+  state.answers[state.current] = i;
+  render();
+}
+
+function nextQuestion() {
+  if (state.current + 1 < QUESTIONS.length) {
+    state.current++;
+    render();
+  } else {
+    state.screen = 'results';
+    sendToSheets();
+    render();
+  }
+}
+
+// ── RESULTS ───────────────────────────────────────────────────────────────
+function renderResults() {
+  const total = QUESTIONS.length;
+  const score = state.answers.filter((a, i) => a === QUESTIONS[i].answer).length;
+  const pct   = Math.round((score / total) * 100);
+  const dur   = Math.round((Date.now() - state.startTime) / 60000);
+
+  const ringCls = pct >= 70 ? 'score-success' : pct >= 50 ? 'score-partial' : 'score-fail';
+  const msg = pct >= 70
+    ? 'Formation validée – Bon travail !'
+    : pct >= 50
+    ? 'Des lacunes persistent – Revoir le support de formation'
+    : 'Score insuffisant – Une révision complète est nécessaire';
+
+  const reviewItems = QUESTIONS.map((q, i) => {
+    const a = state.answers[i];
+    const ok = a === q.answer;
+    const letters = ['A', 'B', 'C', 'D'];
+    return `
+      <div class="review-item" id="rv${i}">
+        <div class="review-header" onclick="toggleReview(${i})">
+          <span class="review-icon">${ok ? '✅' : '❌'}</span>
+          <span class="review-q">Q${i+1} – ${q.q.substring(0, 70)}…</span>
+          <span class="review-chevron">▶</span>
+        </div>
+        <div class="review-body">
+          ${!ok ? `<div class="rv-your">Votre réponse : ${letters[a]} – ${q.choices[a]}</div>` : ''}
+          <div class="rv-correct">✔ Bonne réponse : ${letters[q.answer]} – ${q.choices[q.answer]}</div>
+          <div class="rv-expl">${q.expl}</div>
+          <div class="rv-expl" style="margin-top:4px;">${q.ref}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  app.innerHTML = `
+    <div class="results-card">
+      <h2>Résultats de ${state.participant.prenom} ${state.participant.nom}</h2>
+      <p style="color:var(--muted);font-size:13px;margin-top:4px;">
+        Poste : ${state.participant.poste} &nbsp;·&nbsp; Durée : ${dur} min &nbsp;·&nbsp; Juin 2026
+      </p>
+
+      <div class="score-ring-wrap">
+        <div class="score-circle ${ringCls}">
+          <span class="sc-pct">${pct}%</span>
+          <span class="sc-raw">${score} / ${total}</span>
+        </div>
+        <div class="score-message">${msg}</div>
+        <div class="score-sub">Seuil de validation : 70%</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="sb-val" style="color:var(--success)">${score}</div>
+          <div class="sb-lbl">Bonnes réponses</div>
+        </div>
+        <div class="stat-box">
+          <div class="sb-val" style="color:var(--danger)">${total - score}</div>
+          <div class="sb-lbl">Mauvaises réponses</div>
+        </div>
+        <div class="stat-box">
+          <div class="sb-val">${dur}</div>
+          <div class="sb-lbl">Minutes</div>
+        </div>
+      </div>
+
+      <div class="tracking-box ${state.trackingStatus === 'sent' ? 'sent' : state.trackingStatus === 'error' ? 'error' : 'pending'}" id="trackBox">
+        ${state.trackingStatus === 'sent'
+          ? '✅ Résultats enregistrés dans Google Sheets'
+          : state.trackingStatus === 'error'
+          ? "⚠️ Erreur d'envoi – vérifiez la configuration dans le fichier HTML"
+          : '⏳ Envoi en cours…'}
+      </div>
+
+      <h3 style="margin-top:24px;color:var(--navy);font-size:16px;">Revue question par question</h3>
+      <div class="review-list">${reviewItems}</div>
+
+      <button class="btn-next" style="margin-top:24px" onclick="location.reload()">Recommencer le quiz</button>
+    </div>
+  `;
+}
+
+function toggleReview(i) {
+  const el = document.getElementById('rv' + i);
+  el.classList.toggle('open');
+  el.querySelector('.review-chevron').textContent = el.classList.contains('open') ? '▼' : '▶';
+}
+
+// ── TRACKING ──────────────────────────────────────────────────────────────
+async function sendToSheets() {
+  if (!SHEETS_URL) { state.trackingStatus = 'error'; return; }
+  const now   = new Date();
+  const total = QUESTIONS.length;
+  const score = state.answers.filter((a, i) => a === QUESTIONS[i].answer).length;
+  const dur   = Math.round((Date.now() - state.startTime) / 60000);
+  const details = QUESTIONS.map((q, i) => `Q${i+1}:${state.answers[i] === q.answer ? 'OK' : 'KO'}`).join(' | ');
+
+  const payload = {
+    date:        now.toLocaleDateString('fr-FR'),
+    heure:       now.toLocaleTimeString('fr-FR'),
+    prenom:      state.participant.prenom,
+    nom:         state.participant.nom,
+    poste:       state.participant.poste || '-',
+    score:       score,
+    total:       total,
+    pourcentage: Math.round((score / total) * 100) + '%',
+    duree:       dur,
+    details:     details,
+    formation:   'Juillet 2026 – Chute de plain-pied et ordre sur chantier'
+  };
+
+  try {
+    await fetch(SHEETS_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    state.trackingStatus = 'sent';
+  } catch(err) {
+    state.trackingStatus = 'error';
+  }
+
+  const tb = document.getElementById('trackBox');
+  if (tb) {
+    tb.className = 'tracking-box ' + (state.trackingStatus === 'sent' ? 'sent' : 'error');
+    tb.textContent = state.trackingStatus === 'sent'
+      ? '✅ Résultats enregistrés dans Google Sheets'
+      : "⚠️ Erreur d'envoi – vérifiez la configuration dans le fichier HTML";
+  }
+}
+
+render();
+</script>
+</body>
+</html>
