@@ -225,33 +225,33 @@ const QUESTIONS = [
   {
     q: "On distingue habituellement trois familles de causes des chutes de plain-pied. Lesquelles ?",
     choices: [
-      "Le vent, la pluie et le froid",
       "L'état du sol, les encombrements et d'autres facteurs (éclairage, allure, coactivité)",
-      "La fatigue, le stress et le bruit",
-      "Les machines, l'électricité et les produits chimiques"
+      "Le vent, la pluie et le froid",
+      "Les machines, l'électricité et les produits chimiques",
+      "La fatigue, le stress et le bruit"
     ],
-    answer: 1,
+    answer: 0,
     expl: "On regroupe généralement les causes en trois familles : l'état du sol (glissant, dégradé, irrégulier), les encombrements (câbles, matériel non rangé, passages obstrués) et d'autres facteurs (éclairage insuffisant, chaussures inadaptées, précipitation, coactivité mal organisée).",
     ref: "Source externe : INRS"
   },
   {
     q: "Vous repérez une flaque d'huile au sol dans une zone de passage. Quelle est la meilleure conduite à tenir ?",
     choices: [
-      "L'enjamber et continuer, ce n'est pas votre poste",
-      "La signaler/baliser puis nettoyer immédiatement l'épanchement",
       "Attendre la fin de la journée pour prévenir le responsable",
-      "Poser un carton dessus pour absorber"
+      "Poser un carton dessus pour absorber",
+      "La signaler/baliser puis nettoyer immédiatement l'épanchement",
+      "L'enjamber et continuer, ce n'est pas votre poste"
     ],
-    answer: 1,
+    answer: 2,
     expl: "Un épanchement au sol doit être signalé/balisé sans délai, puis nettoyé immédiatement. Le laisser ou le masquer (carton) crée un piège pour soi et pour les autres intervenants.",
     ref: "Source externe : bonnes pratiques INRS"
   },
   {
     q: "Comment doit-on signaler une zone à risque de chute (sol mouillé, câble traversant) ?",
     choices: [
-      "Ce n'est pas nécessaire si l'on est seul sur la zone",
-      "Par un balisage physique et/ou une signalétique normalisée, retirés dès que le danger disparaît",
       "En envoyant seulement un e-mail au responsable",
+      "Par un balisage physique et/ou une signalétique normalisée, retirés dès que le danger disparaît",
+      "Ce n'est pas nécessaire si l'on est seul sur la zone",
       "En prévenant uniquement oralement une personne"
     ],
     answer: 1,
@@ -262,23 +262,23 @@ const QUESTIONS = [
     q: "En matière de manutention à pied sur un chantier, quelle pratique limite le risque de chute ?",
     choices: [
       "Porter une charge qui masque la vue pour aller plus vite",
-      "Anticiper et dégager le parcours avant de transporter la charge",
       "Courir pour réduire le temps de port",
-      "Empiler le maximum pour faire moins de trajets"
+      "Empiler le maximum pour faire moins de trajets",
+      "Anticiper et dégager le parcours avant de transporter la charge"
     ],
-    answer: 1,
+    answer: 3,
     expl: "Avant de manutentionner, on anticipe et on dégage le parcours, on adapte l'allure au sol et on évite de masquer sa vue avec la charge. Précipitation et vue obstruée sont des facteurs aggravants de chute.",
     ref: "Source externe : bonnes pratiques INRS"
   },
   {
     q: "Concernant les chaussures de sécurité comme protection contre les chutes de plain-pied :",
     choices: [
-      "Elles suffisent à elles seules à éliminer le risque",
-      "Elles constituent la dernière barrière et complètent l'ordre et la propreté des lieux",
       "Leur état d'usure n'a aucune importance",
-      "Elles remplacent le balisage des zones à risque"
+      "Elles remplacent le balisage des zones à risque",
+      "Elles constituent la dernière barrière et complètent l'ordre et la propreté des lieux",
+      "Elles suffisent à elles seules à éliminer le risque"
     ],
-    answer: 1,
+    answer: 2,
     expl: "La chaussure antidérapante est la dernière barrière (EPI) : elle complète, sans les remplacer, la suppression du danger, le balisage et le rangement. Une semelle usée perd son adhérence : elle doit être vérifiée et remplacée.",
     ref: "Source externe : bonnes pratiques INRS"
   },
@@ -287,8 +287,8 @@ const QUESTIONS = [
     choices: [
       "Distribuer des EPI, puis éventuellement ranger",
       "Éviter le risque à la source, puis protéger collectivement, et en dernier recours l'EPI",
-      "Uniquement signaler, sans rien changer au sol",
-      "Attendre l'audit MASE pour décider"
+      "Attendre l'audit MASE pour décider",
+      "Uniquement signaler, sans rien changer au sol"
     ],
     answer: 1,
     expl: "Les principes généraux de prévention s'appliquent dans l'ordre : éviter le risque, l'évaluer, le combattre à la source, protéger collectivement (balisage, éclairage, organisation), et n'utiliser l'EPI qu'en dernier recours.",
@@ -297,24 +297,24 @@ const QUESTIONS = [
   {
     q: "Vous intervenez sur une armoire électrique en site client. Vos câbles, rallonges et outillage sont étalés au sol dans une zone de passage partagée avec d'autres intervenants. Quelle est la meilleure conduite à tenir ?",
     choices: [
-      "Laisser en l'état : ranger uniquement à la fin de la journée",
-      "Organiser le cheminement des câbles, dégager la zone de passage et ranger l'outillage au fur et à mesure",
       "Signaler oralement à une seule personne et continuer",
-      "Déplacer le matériel dans une autre zone de passage"
+      "Déplacer le matériel dans une autre zone de passage",
+      "Organiser le cheminement des câbles, dégager la zone de passage et ranger l'outillage au fur et à mesure",
+      "Laisser en l'état : ranger uniquement à la fin de la journée"
     ],
-    answer: 1,
+    answer: 2,
     expl: "En zone de passage et de coactivité, on organise le cheminement des câbles (passages de câbles, fixation au sol), on maintient la zone de circulation dégagée et on range l'outillage au fur et à mesure. Laisser traîner le matériel ou le déplacer vers un autre passage ne fait que déplacer le risque de trébuchement pour soi comme pour les autres intervenants.",
     ref: "Cas terrain AP2I (intervention armoire/TGBT en coactivité)"
   },
   {
     q: "Vous terminez une intervention sur un site client. Il vous reste 15 minutes avant de partir et du matériel est encore réparti dans la zone de travail. Quelle est la meilleure conduite à tenir ?",
     choices: [
-      "Partir directement, le nettoyage n'est pas votre rôle",
       "Replier l'ensemble du matériel et nettoyer la zone d'intervention avant de quitter le site",
-      "Laisser le matériel sur place pour la prochaine intervention",
-      "Ranger uniquement si un salarié du client le demande"
+      "Ranger uniquement si un salarié du client le demande",
+      "Partir directement, le nettoyage n'est pas votre rôle",
+      "Laisser le matériel sur place pour la prochaine intervention"
     ],
-    answer: 1,
+    answer: 0,
     expl: "En fin de chantier, on replie l'ensemble du matériel et on nettoie la zone d'intervention avant de partir. Une zone laissée encombrée ou souillée devient un risque de chute pour les personnes qui y circuleront ensuite : ranger et nettoyer fait partie de l'intervention, pas d'une étape optionnelle.",
     ref: "Cas terrain AP2I (repli et nettoyage en fin de chantier)"
   }
