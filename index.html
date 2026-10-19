@@ -1,646 +1,93 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz MASE – AP2I</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Formations et quiz sécurité MASE – AP2I</title>
 <style>
-  :root {
-    --navy: #1B3A6B;
-    --orange: #E8521A;
-    --light: #F4F6F9;
-    --white: #FFFFFF;
-    --text: #1C2B42;
-    --muted: #607090;
-    --success: #1E7E34;
-    --danger: #B91C1C;
-    --warn: #D97706;
-    --mid: #D0D9E8;
-    --shadow: 0 4px 16px rgba(27,58,107,0.10);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Calibri, Arial, sans-serif; background: var(--light); color: var(--text); min-height: 100vh; }
-
-  /* ── HEADER ── */
-  .header {
-    background: var(--navy);
-    padding: 18px 32px;
-    display: flex; align-items: center; gap: 16px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-  }
-  .header-shield { font-size: 28px; }
-  .header-title { color: white; font-size: 18px; font-weight: 700; }
-  .header-sub { color: #A8BEDD; font-size: 12px; margin-top: 2px; }
-  .header-badge {
-    margin-left: auto; background: var(--orange);
-    color: white; font-size: 11px; font-weight: 700;
-    padding: 4px 12px; border-radius: 20px; letter-spacing: 1px;
-  }
-
-  /* ── MAIN ── */
-  .main { max-width: 800px; margin: 0 auto; padding: 32px 16px 64px; }
-
-  /* ── PARTICIPANT FORM ── */
-  .participant-card {
-    background: white; border-radius: 12px;
-    padding: 32px; box-shadow: var(--shadow);
-    border-top: 4px solid var(--orange);
-  }
-  .participant-card h2 { color: var(--navy); font-size: 20px; margin-bottom: 8px; }
-  .participant-card p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
-  .form-row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
-  .form-group { flex: 1; min-width: 200px; }
-  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
-  .form-group input {
-    width: 100%; padding: 10px 14px; border: 1.5px solid var(--mid);
-    border-radius: 8px; font-size: 14px; color: var(--text);
-    transition: border-color 0.2s;
-  }
-  .form-group input:focus { outline: none; border-color: var(--orange); }
-  .btn-start {
-    background: var(--orange); color: white; border: none;
-    padding: 13px 32px; border-radius: 8px; font-size: 15px;
-    font-weight: 700; cursor: pointer; width: 100%;
-    transition: background 0.2s, transform 0.1s;
-    margin-top: 8px;
-  }
-  .btn-start:hover { background: #c93e0e; transform: translateY(-1px); }
-  .btn-start:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
-
-  /* ── PROGRESS ── */
-  .progress-bar-wrap {
-    background: var(--mid); border-radius: 20px; height: 6px; margin-bottom: 24px;
-    overflow: hidden;
-  }
-  .progress-bar { height: 100%; background: var(--orange); border-radius: 20px; transition: width 0.4s ease; }
-  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
-
-  /* ── QUESTION CARD ── */
-  .question-card {
-    background: white; border-radius: 12px;
-    padding: 28px 32px; box-shadow: var(--shadow);
-    margin-bottom: 20px;
-    animation: fadeIn 0.3s ease;
-  }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-  .question-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-  .question-num {
-    background: var(--navy); color: white;
-    font-size: 11px; font-weight: 700; padding: 3px 10px;
-    border-radius: 20px; letter-spacing: 1px;
-  }
-  .question-theme {
-    background: var(--light); color: var(--muted);
-    font-size: 11px; font-weight: 600; padding: 3px 10px;
-    border-radius: 20px; letter-spacing: 0.5px;
-  }
-  .question-text { font-size: 16px; font-weight: 600; color: var(--navy); line-height: 1.5; margin-bottom: 20px; }
-
-  /* ── OPTIONS ── */
-  .options { display: flex; flex-direction: column; gap: 10px; }
-  .option {
-    display: flex; align-items: center; gap: 14px;
-    border: 2px solid var(--mid); border-radius: 10px;
-    padding: 13px 16px; cursor: pointer;
-    transition: all 0.18s; background: white;
-  }
-  .option:hover:not(.locked) { border-color: var(--orange); background: #FFF5F0; }
-  .option.selected:not(.locked) { border-color: var(--orange); background: #FFF5F0; }
-  .option.correct { border-color: var(--success); background: #F0FFF4; }
-  .option.wrong { border-color: var(--danger); background: #FFF0F0; }
-  .option-letter {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--light); color: var(--navy);
-    font-size: 13px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; transition: all 0.18s;
-  }
-  .option.selected:not(.locked) .option-letter { background: var(--orange); color: white; }
-  .option.correct .option-letter { background: var(--success); color: white; }
-  .option.wrong .option-letter { background: var(--danger); color: white; }
-  .option-text { font-size: 14px; color: var(--text); }
-  .option-icon { margin-left: auto; font-size: 16px; }
-
-  /* ── EXPLANATION ── */
-  .explanation {
-    margin-top: 16px; padding: 14px 16px;
-    border-radius: 8px; font-size: 13px; line-height: 1.5;
-    border-left: 4px solid;
-    animation: fadeIn 0.3s ease;
-  }
-  .explanation.correct { background: #F0FFF4; border-color: var(--success); color: var(--success); }
-  .explanation.wrong { background: #FFF0F0; border-color: var(--danger); color: var(--danger); }
-
-  /* ── NAV ── */
-  .nav-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 4px; }
-  .btn-next {
-    background: var(--navy); color: white; border: none;
-    padding: 11px 28px; border-radius: 8px; font-size: 14px;
-    font-weight: 700; cursor: pointer; transition: background 0.2s;
-  }
-  .btn-next:hover { background: #0f2547; }
-  .btn-next:disabled { background: var(--muted); cursor: not-allowed; }
-
-  /* ── RESULTS ── */
-  .results-card {
-    background: white; border-radius: 12px;
-    padding: 40px 32px; box-shadow: var(--shadow);
-    text-align: center;
-    animation: fadeIn 0.4s ease;
-  }
-  .score-circle {
-    width: 140px; height: 140px; border-radius: 50%;
-    margin: 0 auto 24px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-weight: 700;
-    border: 6px solid;
-  }
-  .score-circle .score-val { font-size: 36px; line-height: 1; }
-  .score-circle .score-lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .score-circle.excellent { border-color: var(--success); color: var(--success); }
-  .score-circle.good { border-color: var(--warn); color: var(--warn); }
-  .score-circle.fail { border-color: var(--danger); color: var(--danger); }
-  .results-title { font-size: 22px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
-  .results-sub { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
-  .results-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 28px; }
-  .results-stat { background: var(--light); border-radius: 10px; padding: 16px; }
-  .results-stat .val { font-size: 22px; font-weight: 700; color: var(--navy); }
-  .results-stat .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
-
-  /* Review section */
-  .review-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 12px; text-align: left; }
-  .review-item {
-    display: flex; gap: 12px; align-items: flex-start;
-    padding: 12px; border-radius: 8px; margin-bottom: 8px;
-    text-align: left; font-size: 13px;
-  }
-  .review-item.ok { background: #F0FFF4; }
-  .review-item.ko { background: #FFF0F0; }
-  .review-dot { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
-  .review-q { font-weight: 600; color: var(--text); }
-  .review-a { color: var(--muted); font-size: 12px; margin-top: 3px; }
-
-  .btn-restart {
-    background: var(--orange); color: white; border: none;
-    padding: 13px 32px; border-radius: 8px; font-size: 15px;
-    font-weight: 700; cursor: pointer; transition: background 0.2s;
-    margin-top: 8px;
-  }
-  .btn-restart:hover { background: #c93e0e; }
-
-  /* ── TRACKING STATUS ── */
-  .tracking-status {
-    margin-top: 20px; padding: 12px 16px; border-radius: 8px;
-    font-size: 13px; font-weight: 600; text-align: center;
-  }
-  .tracking-status.sending { background: #FFF8E1; color: var(--warn); }
-  .tracking-status.sent { background: #F0FFF4; color: var(--success); }
-  .tracking-status.error { background: #FFF0F0; color: var(--danger); }
-
-
-  @media (max-width: 600px) {
-    .main { padding: 20px 12px 48px; }
-    .results-grid { grid-template-columns: 1fr 1fr; }
-    .form-row { flex-direction: column; }
-    .question-card { padding: 20px; }
-  }
+:root{
+  --bg:#f4f7fa; --card:#ffffff; --text:#0B1F3A; --muted:#3E5470; --line:#dbe3ea;
+  --navy:#0064A0; --link:#0064A0;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Calibri,"Segoe UI",system-ui,-apple-system,Arial,sans-serif;line-height:1.45}
+header{background:#fff;border-bottom:3px solid var(--navy);padding:20px 16px 18px}
+.entete{max-width:720px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px}
+.logo{display:block;width:150px;height:auto}
+header h1{margin:0 0 4px;font-size:1.5rem;color:var(--text)}
+header p{margin:0;color:var(--muted)}
+main{max-width:720px;margin:0 auto;padding:20px 16px 8px}
+.card{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--navy);border-radius:10px;padding:14px 16px;margin:0 0 14px}
+.mois{margin:0;font-size:.85rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.titre{margin:2px 0 12px;font-size:1.1rem;font-weight:700}
+.actions{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-block;padding:10px 18px;border-radius:8px;font-weight:700;text-decoration:none;font-size:1rem}
+.btn-quiz{background:var(--navy);color:#fff}
+.btn-form{border:2px solid var(--link);color:var(--link)}
+.btn-off{border:2px dashed var(--line);color:var(--muted);font-weight:400}
+footer{max-width:720px;margin:0 auto;padding:8px 16px 28px;color:var(--muted);font-size:.85rem}
 </style>
 </head>
 <body>
-
-<div class="header">
-  <span class="header-shield">🛡️</span>
-  <div>
-    <div class="header-title">Quiz de validation – Formation MASE</div>
-    <div class="header-sub">AP2I · Programme de Prévention des Risques · Mars 2026</div>
+<header>
+  <div class="entete">
+    <img class="logo" src="data:image/png;base64,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" alt="AP2I" width="200" height="76">
+    <div>
+      <h1>Formations et quiz sécurité MASE</h1>
+      <p>AP2I – Filiale TREMA Multitechnique · Reims</p>
+    </div>
   </div>
-  <span class="header-badge">AP2I</span>
-</div>
-
-<div class="main" id="app"></div>
+</header>
+<main id="liste"></main>
+<footer>Un quiz par mois, à faire directement sur téléphone. Les modules les plus récents sont en haut de la liste.</footer>
 
 <script>
-// ═══════════════════════════════════════════════════════════════════════════
-// CONFIGURATION ADMIN — Coller ici l'URL Google Apps Script avant publication
-// ═══════════════════════════════════════════════════════════════════════════
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxAcSxX0gp_OMD_DreugvJLvO2QYkqCpv_lmLUP4Bzww9fbfFkPaquzq0_zzQ1kurzANg/exec';
-
-// ═══════════════════════════════════════════════════════════════════════════
-// QUESTIONS DU QUIZ
-// ═══════════════════════════════════════════════════════════════════════════
-const QUESTIONS = [
-  {
-    theme: "Qu'est-ce que MASE ?",
-    question: "Que signifie l'acronyme MASE ?",
-    options: [
-      "Méthode d'Analyse et de Suivi des Entreprises",
-      "Manuel d'Amélioration Sécurité des Entreprises",
-      "Management Avancé de la Sécurité en Entreprise",
-      "Méthode d'Audit et de Sécurité Environnementale"
-    ],
-    correct: 1,
-    explanation: "MASE signifie « Manuel d'Amélioration Sécurité des Entreprises ». C'est un référentiel créé en 1994, qui fédère plus de 20 000 entreprises certifiées en France."
-  },
-  {
-    theme: "Certif. MASE",
-    question: "Quelle est la durée d'une certification MASE ?",
-    options: ["1 an", "2 ans", "3 ans", "5 ans"],
-    correct: 2,
-    explanation: "La certification MASE est valable 3 ans. Des audits intermédiaires sont réalisés pour maintenir le niveau de conformité entre les deux certifications."
-  },
-  {
-    theme: "Les 5 axes",
-    question: "Combien d'axes comporte le référentiel MASE ?",
-    options: ["3", "4", "5", "6"],
-    correct: 2,
-    explanation: "Le référentiel MASE est structuré autour de 5 axes, chacun représentant 20% de la note finale lors de l'audit de certification."
-  },
-  {
-    theme: "Axe 1 – Direction",
-    question: "Quel est le rôle de la Direction dans la démarche MASE (Axe 1) ?",
-    options: [
-      "Uniquement signer les documents administratifs",
-      "Définir la politique HSE, fixer des objectifs chiffrés et allouer les ressources",
-      "Déléguer entièrement la sécurité au responsable HSE",
-      "Réaliser les audits externes"
-    ],
-    correct: 1,
-    explanation: "L'Axe 1 exige que la direction s'engage formellement : signer une politique sécurité, fixer des objectifs mesurables, allouer un budget dédié et organiser une revue de direction annuelle."
-  },
-  {
-    theme: "Axe 2 – Compétences",
-    question: "Que doit contenir le plan de formation annuel d'AP2I dans le cadre de MASE ?",
-    options: [
-      "Uniquement les formations techniques métier",
-      "Un volet sécurité HSE intégré",
-      "Des formations sur les outils informatiques",
-      "Des modules de management uniquement"
-    ],
-    correct: 1,
-    explanation: "L'Axe 2 impose d'intégrer le volet sécurité dans le plan de formation annuel, incluant les habilitations, les accueils sécurité et les formations HSE spécifiques."
-  },
-  {
-    theme: "Axe 3 – Organisation",
-    question: "Avant de démarrer une intervention, que doit obligatoirement réaliser un salarié selon l'Axe 3 ?",
-    options: [
-      "Envoyer un email à son responsable",
-      "Vérifier son planning de la semaine",
-      "Lire et signer le plan de prévention ou le permis de travail",
-      "Appeler le service RH"
-    ],
-    correct: 2,
-    explanation: "L'Axe 3 (Préparation du travail) exige de consulter et signer les documents de prévention (plan de prévention, PDU, permis de travail) avant toute intervention à risque."
-  },
-  {
-    theme: "Axe 4 – Management",
-    question: "Qu'est-ce qu'un « presqu'accident » dans le cadre du suivi MASE (Axe 4) ?",
-    options: [
-      "Un accident qui n'a pas été déclaré",
-      "Une situation dangereuse qui aurait pu provoquer un accident mais ne l'a pas fait",
-      "Un accident de trajet",
-      "Un incident survenu à un sous-traitant"
-    ],
-    correct: 1,
-    explanation: "Un presqu'accident est une situation qui aurait pu causer un accident sans en avoir les conséquences. Sa déclaration obligatoire permet d'agir préventivement avant qu'un véritable accident ne survienne."
-  },
-  {
-    theme: "Axe 5 – Amélioration",
-    question: "Que signifie PAPRIPACT ?",
-    options: [
-      "Plan d'Action pour la Prévention des Risques et l'Amélioration des Conditions de Travail",
-      "Programme Annuel de Prévention des Risques Professionnels et d'Amélioration des Conditions de Travail",
-      "Protocole d'Application des Procédures de Risques Professionnels et Contrôle du Travail",
-      "Plan Annuel de Protection des Risques Industriels et des Accidents au Travail"
-    ],
-    correct: 1,
-    explanation: "PAPRIPACT = Programme Annuel de Prévention des Risques Professionnels et d'Amélioration des Conditions de Travail. C'est le document central de l'Axe 5 (Amélioration continue) chez AP2I."
-  },
-  {
-    theme: "Risque Machines",
-    question: "Face à un outil défectueux sur votre poste de travail, quelle est la bonne conduite ?",
-    options: [
-      "Continuer à l'utiliser avec précaution",
-      "L'utiliser en portant des EPI supplémentaires",
-      "Le modifier pour le faire fonctionner",
-      "Arrêter l'utilisation et signaler immédiatement l'anomalie"
-    ],
-    correct: 3,
-    explanation: "Tout outil défectueux doit être immédiatement mis hors service et signalé. Continuer à l'utiliser, même avec des précautions, expose le salarié et ses collègues à un risque grave."
-  },
-  {
-    theme: "Risque Électrique",
-    question: "Quelle est la condition OBLIGATOIRE pour intervenir sur une installation électrique ?",
-    options: [
-      "Être accompagné d'un collègue",
-      "Porter des gants de travail standards",
-      "Posséder une habilitation électrique valide",
-      "Prévenir son chef d'équipe à l'avance"
-    ],
-    correct: 2,
-    explanation: "Aucune intervention sur une installation électrique ne peut être réalisée sans habilitation électrique valide et à jour. L'habilitation B0E/B0 est le minimum requis pour tous les salariés AP2I."
-  },
-  {
-    theme: "Risque Circulation",
-    question: "En zone de circulation d'engins, quelle mesure est indispensable pour un piéton ?",
-    options: [
-      "Marcher rapidement pour traverser la zone",
-      "Porter le gilet haute visibilité et respecter les voies piétonnes balisées",
-      "Attendre que tous les engins soient arrêtés",
-      "Demander à un chauffeur de l'accompagner"
-    ],
-    correct: 1,
-    explanation: "En zone de coactivité piétons/engins, le port du gilet haute visibilité est obligatoire et les voies piétonnes balisées doivent être strictement respectées."
-  },
-  {
-    theme: "Chutes plain-pied",
-    question: "Les chutes de plain-pied représentent quelle position dans les causes d'accidents du travail en France ?",
-    options: ["2e cause", "3e cause", "1ère cause", "5e cause"],
-    correct: 2,
-    explanation: "Les chutes de plain-pied sont la 1ère cause d'accidents du travail en France. Chez AP2I, cela implique de maintenir les allées dégagées, signaler tout sol glissant et porter des chaussures de sécurité conformes."
-  }
+/*
+  POUR AJOUTER UN MOIS : copier un bloc { ... }, le coller EN HAUT de la liste, puis adapter.
+  - quiz      : nom du fichier du quiz dans le dépôt (ex. "octobre.html")
+  - formation : chemin du PDF dans le dépôt (ex. "formations/octobre.pdf"), ou null s'il n'est pas encore publié
+*/
+const MODULES = [
+  { mois:"Septembre 2026", titre:"EPI : choix, port obligatoire et entretien", quiz:"septembre.html", formation:null },
+  { mois:"Août 2026", titre:"Accident, presqu’accident et droit d’alerte et de retrait", quiz:"aout.html", formation:null },
+  { mois:"Juillet 2026", titre:"Chute de plain-pied : prévention et ordre sur chantier", quiz:"juillet.html", formation:null },
+  { mois:"Juin 2026", titre:"Sécurité électrique et habilitation", quiz:"juin.html", formation:null },
+  { mois:"Mai 2026", titre:"Risques routiers et sécurité des déplacements", quiz:"mai.html", formation:null },
+  { mois:"Avril 2026", titre:"Risques liés aux machines et aux outils", quiz:"avril.html", formation:null }
 ];
 
-// ═══════════════════════════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════════════════════════
-let state = {
-  screen: 'participant', // participant | quiz | results
-  participant: { nom: '', prenom: '', poste: '' },
-  current: 0,
-  selected: null,
-  answered: false,
-  answers: [], // { q, selected, correct, ok }
-  startTime: null,
-  trackingStatus: null // null | sending | sent | error
-};
+const conteneur = document.getElementById("liste");
 
-// ═══════════════════════════════════════════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════════════════════════════════════════
-function render() {
-  const app = document.getElementById('app');
-  if (state.screen === 'participant') app.innerHTML = renderParticipant();
-  else if (state.screen === 'quiz') app.innerHTML = renderQuiz();
-  else app.innerHTML = renderResults();
-  bindEvents();
+function el(tag, classe, texte){
+  const e = document.createElement(tag);
+  if (classe) e.className = classe;
+  if (texte) e.textContent = texte;
+  return e;
+}
+function lien(classe, texte, href){
+  const a = el("a", classe, texte);
+  a.href = href;
+  return a;
 }
 
-function renderParticipant() {
-  return `
-    <div class="participant-card">
-      <h2>Bienvenue dans le quiz MASE 🛡️</h2>
-      <p>Renseignez vos informations avant de commencer. Vos résultats seront enregistrés automatiquement.</p>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Prénom *</label>
-          <input type="text" id="prenom" placeholder="Votre prénom" value="${state.participant.prenom}">
-        </div>
-        <div class="form-group">
-          <label>Nom *</label>
-          <input type="text" id="nom" placeholder="Votre nom" value="${state.participant.nom}">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Poste / Service</label>
-          <input type="text" id="poste" placeholder="Ex : Technicien, Commercial…" value="${state.participant.poste}">
-        </div>
-      </div>
-      <button class="btn-start" id="btn-start">Commencer le quiz →</button>
-    </div>
-  `;
-}
-
-function renderQuiz() {
-  const q = QUESTIONS[state.current];
-  const progress = ((state.current) / QUESTIONS.length) * 100;
-  const letters = ['A', 'B', 'C', 'D'];
-
-  let optionsHtml = q.options.map((opt, i) => {
-    let cls = 'option';
-    let icon = '';
-    if (state.answered) {
-      cls += ' locked';
-      if (i === q.correct) { cls += ' correct'; icon = '✅'; }
-      else if (i === state.selected && i !== q.correct) { cls += ' wrong'; icon = '❌'; }
-    } else {
-      if (i === state.selected) cls += ' selected';
-    }
-    return `
-      <div class="${cls}" data-index="${i}">
-        <span class="option-letter">${letters[i]}</span>
-        <span class="option-text">${opt}</span>
-        <span class="option-icon">${icon}</span>
-      </div>`;
-  }).join('');
-
-  let explanationHtml = '';
-  if (state.answered) {
-    const ok = state.selected === q.correct;
-    explanationHtml = `
-      <div class="explanation ${ok ? 'correct' : 'wrong'}">
-        ${ok ? '✅ Bonne réponse !' : '❌ Mauvaise réponse.'} ${q.explanation}
-      </div>`;
-  }
-
-  const isLast = state.current === QUESTIONS.length - 1;
-  const btnLabel = isLast ? 'Voir mes résultats 🎯' : 'Question suivante →';
-
-  return `
-    <div class="progress-label">
-      <span>Question ${state.current + 1} / ${QUESTIONS.length}</span>
-      <span>${Math.round(progress)}% complété</span>
-    </div>
-    <div class="progress-bar-wrap">
-      <div class="progress-bar" style="width:${progress}%"></div>
-    </div>
-
-    <div class="question-card">
-      <div class="question-meta">
-        <span class="question-num">Q${state.current + 1}</span>
-        <span class="question-theme">${q.theme}</span>
-      </div>
-      <div class="question-text">${q.question}</div>
-      <div class="options" id="options">${optionsHtml}</div>
-      ${explanationHtml}
-    </div>
-
-    <div class="nav-row">
-      <button class="btn-next" id="btn-next" ${!state.answered ? 'disabled' : ''}>${btnLabel}</button>
-    </div>
-  `;
-}
-
-function renderResults() {
-  const score = state.answers.filter(a => a.ok).length;
-  const total = QUESTIONS.length;
-  const pct = Math.round((score / total) * 100);
-  const dur = Math.round((Date.now() - state.startTime) / 60000);
-  const wrong = state.answers.filter(a => !a.ok).length;
-
-  let circleClass = pct >= 80 ? 'excellent' : pct >= 60 ? 'good' : 'fail';
-  let msg = pct >= 80 ? '🎉 Félicitations ! Vous maîtrisez bien la démarche MASE.'
-          : pct >= 60 ? '👍 Bon résultat ! Quelques points à consolider.'
-          : '📚 Des révisions sont nécessaires. N\'hésitez pas à revoir le support de formation.';
-
-  const reviewHtml = state.answers.map((a, i) => `
-    <div class="review-item ${a.ok ? 'ok' : 'ko'}">
-      <span class="review-dot">${a.ok ? '✅' : '❌'}</span>
-      <div>
-        <div class="review-q">Q${i+1} – ${QUESTIONS[i].theme}</div>
-        <div class="review-a">${a.ok ? 'Bonne réponse' : `Votre réponse : "${QUESTIONS[i].options[a.selected]}" – Correcte : "${QUESTIONS[i].options[QUESTIONS[i].correct]}"`}</div>
-      </div>
-    </div>
-  `).join('');
-
-  let trackingHtml = '';
-  if (state.trackingStatus === 'sending') trackingHtml = '<div class="tracking-status sending">⏳ Envoi vers Google Sheets en cours…</div>';
-  if (state.trackingStatus === 'sent')    trackingHtml = '<div class="tracking-status sent">✅ Résultats enregistrés dans Google Sheets avec succès !</div>';
-  if (state.trackingStatus === 'error')   trackingHtml = '<div class="tracking-status error">⚠️ Impossible d\'envoyer vers Google Sheets. Vérifiez l\'URL configurée.</div>';
-
-  return `
-    <div class="results-card">
-      <div class="score-circle ${circleClass}">
-        <span class="score-val">${pct}%</span>
-        <span class="score-lbl">${score}/${total}</span>
-      </div>
-      <div class="results-title">${state.participant.prenom} ${state.participant.nom}</div>
-      <div class="results-sub">${msg}</div>
-
-      <div class="results-grid">
-        <div class="results-stat"><div class="val" style="color:var(--success)">${score}</div><div class="lbl">Bonnes réponses</div></div>
-        <div class="results-stat"><div class="val" style="color:var(--danger)">${wrong}</div><div class="lbl">Erreurs</div></div>
-        <div class="results-stat"><div class="val">${dur} min</div><div class="lbl">Durée</div></div>
-      </div>
-
-      ${trackingHtml}
-
-      <div style="margin-top:24px;">
-        <div class="review-title">📝 Détail de vos réponses</div>
-        ${reviewHtml}
-      </div>
-
-      <button class="btn-restart" onclick="restart()">🔄 Recommencer le quiz</button>
-    </div>
-  `;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// EVENTS
-// ═══════════════════════════════════════════════════════════════════════════
-function bindEvents() {
-  if (state.screen === 'participant') {
-    const btn = document.getElementById('btn-start');
-    if (btn) btn.addEventListener('click', startQuiz);
-  }
-  if (state.screen === 'quiz') {
-    document.querySelectorAll('.option:not(.locked)').forEach(el => {
-      el.addEventListener('click', () => selectOption(parseInt(el.dataset.index)));
-    });
-    const nextBtn = document.getElementById('btn-next');
-    if (nextBtn && !nextBtn.disabled) nextBtn.addEventListener('click', nextQuestion);
-  }
-}
-
-
-function startQuiz() {
-  const prenom = document.getElementById('prenom').value.trim();
-  const nom = document.getElementById('nom').value.trim();
-  const poste = document.getElementById('poste').value.trim();
-  if (!prenom || !nom) { alert('Merci de renseigner votre prénom et nom.'); return; }
-  state.participant = { prenom, nom, poste };
-  state.screen = 'quiz';
-  state.startTime = Date.now();
-  state.current = 0;
-  state.answers = [];
-  state.selected = null;
-  state.answered = false;
-  render();
-}
-
-function selectOption(idx) {
-  if (state.answered) return;
-  state.selected = idx;
-  state.answered = true;
-  const q = QUESTIONS[state.current];
-  state.answers.push({ q: state.current, selected: idx, correct: q.correct, ok: idx === q.correct });
-  render();
-}
-
-function nextQuestion() {
-  if (state.current < QUESTIONS.length - 1) {
-    state.current++;
-    state.selected = null;
-    state.answered = false;
-    render();
-  } else {
-    state.screen = 'results';
-    state.trackingStatus = null;
-    render();
-    sendToSheets();
-  }
-}
-
-function restart() {
-  state.screen = 'participant';
-  state.answers = [];
-  state.current = 0;
-  state.selected = null;
-  state.answered = false;
-  state.trackingStatus = null;
-  render();
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// GOOGLE SHEETS TRACKING
-// ═══════════════════════════════════════════════════════════════════════════
-async function sendToSheets() {
-  if (!SHEETS_URL) return;
-
-  state.trackingStatus = 'sending';
-  render();
-
-  const score = state.answers.filter(a => a.ok).length;
-  const total = QUESTIONS.length;
-  const pct = Math.round((score / total) * 100) + '%';
-  const dur = Math.round((Date.now() - state.startTime) / 60000);
-  const now = new Date();
-  const details = state.answers.map((a, i) =>
-    `Q${i+1}:${a.ok ? 'OK' : 'KO'}`
-  ).join(' | ');
-
-  const payload = {
-    date: now.toLocaleDateString('fr-FR'),
-    heure: now.toLocaleTimeString('fr-FR'),
-    prenom: state.participant.prenom,
-    nom: state.participant.nom,
-    poste: state.participant.poste || '-',
-    score: score,
-    total: total,
-    pourcentage: pct,
-    duree: dur,
-    details: details,
-    formation: 'Mars 2026 – Panorama MASE'
-  };
-
-  try {
-    await fetch(SHEETS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    state.trackingStatus = 'sent';
-  } catch (err) {
-    state.trackingStatus = 'error';
-  }
-  render();
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════════════════════════
-render();
+MODULES.forEach(m => {
+  const carte = el("section", "card");
+  carte.appendChild(el("p", "mois", m.mois));
+  carte.appendChild(el("p", "titre", m.titre));
+  const actions = el("div", "actions");
+  actions.appendChild(lien("btn btn-quiz", "Faire le quiz", m.quiz));
+  actions.appendChild(m.formation
+    ? lien("btn btn-form", "Voir la formation (PDF)", m.formation)
+    : el("span", "btn btn-off", "Formation : bientôt disponible"));
+  carte.appendChild(actions);
+  conteneur.appendChild(carte);
+});
 </script>
 </body>
 </html>
