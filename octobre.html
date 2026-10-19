@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Sécurité – AP2I – Retour d'expérience et remontée d'informations</title>
+<style>
+  :root {
+    --navy:    #1B3A6B;
+    --orange:  #E8521A;
+    --light:   #F4F6F9;
+    --white:   #FFFFFF;
+    --text:    #1C2B42;
+    --muted:   #607090;
+    --success: #1E7E34;
+    --danger:  #B91C1C;
+    --warn:    #D97706;
+    --mid:     #D0D9E8;
+    --shadow:  0 4px 16px rgba(27,58,107,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Calibri, Arial, sans-serif; background: var(--light); color: var(--text); min-height: 100vh; }
+
+  .header {
+    background: var(--navy); padding: 18px 32px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  .header-shield { font-size: 28px; }
+  .header-title { color: white; font-size: 18px; font-weight: 700; }
+  .header-sub { color: #A8BEDD; font-size: 12px; margin-top: 2px; }
+
+  .main { max-width: 800px; margin: 0 auto; padding: 32px 16px 64px; }
+
+  .participant-card {
+    background: white; border-radius: 12px;
+    padding: 32px; box-shadow: var(--shadow);
+    border-top: 4px solid var(--orange);
+  }
+  .participant-card h2 { color: var(--navy); font-size: 20px; margin-bottom: 8px; }
+  .participant-card p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .form-row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .form-group { flex: 1; min-width: 200px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+  .form-group input {
+    width: 100%; padding: 10px 14px; border: 1.5px solid var(--mid);
+    border-radius: 8px; font-size: 14px; color: var(--text);
+    background: var(--light); transition: border 0.2s;
+  }
+  .form-group input:focus { outline: none; border-color: var(--navy); background: white; }
+
+  .topic-banner {
+    background: var(--navy); color: white;
+    border-radius: 10px; padding: 16px 20px;
+    margin-bottom: 24px; display: flex; gap: 14px; align-items: flex-start;
+  }
+  .topic-banner .topic-icon { font-size: 28px; flex-shrink: 0; }
+  .topic-banner h3 { font-size: 16px; margin-bottom: 4px; }
+  .topic-banner p { font-size: 12px; color: #A8BEDD; }
+
+  .btn-start {
+    width: 100%; padding: 14px; background: var(--navy);
+    color: white; border: none; border-radius: 8px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: background 0.2s; margin-top: 8px;
+  }
+  .btn-start:hover { background: #142D55; }
+
+  .progress-wrap { margin-bottom: 28px; }
+  .progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .progress-label { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .progress-count { font-size: 13px; color: var(--muted); }
+  .progress-bar { height: 8px; background: var(--mid); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--navy); border-radius: 4px; transition: width 0.4s ease; }
+
+  .question-card {
+    background: white; border-radius: 12px;
+    padding: 28px 32px; box-shadow: var(--shadow);
+    border-top: 4px solid var(--navy);
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .question-meta { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .question-text { font-size: 17px; font-weight: 700; color: var(--navy); line-height: 1.5; margin-bottom: 24px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 13px 18px; border: 2px solid var(--mid);
+    border-radius: 10px; cursor: pointer; display: flex; gap: 12px;
+    align-items: flex-start; background: var(--light); transition: all 0.18s;
+    font-size: 14px; color: var(--text); line-height: 1.4;
+  }
+  .option:hover:not(.disabled) { border-color: var(--navy); background: #EDF2FA; }
+  .option .opt-letter {
+    font-size: 12px; font-weight: 700; color: var(--navy);
+    background: var(--mid); border-radius: 50%;
+    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .option.correct  { border-color: var(--success); background: #EBF8F0; }
+  .option.wrong    { border-color: var(--danger);  background: #FDECEA; }
+  .option.correct .opt-letter { background: var(--success); color: white; }
+  .option.wrong .opt-letter   { background: var(--danger);  color: white; }
+  .option.disabled { cursor: default; }
+
+  .feedback {
+    margin-top: 20px; padding: 14px 18px; border-radius: 10px;
+    font-size: 13.5px; line-height: 1.55; animation: fadeIn 0.3s ease;
+  }
+  .feedback.correct-fb { background: #EBF8F0; border-left: 4px solid var(--success); color: #154A22; }
+  .feedback.wrong-fb   { background: #FDECEA; border-left: 4px solid var(--danger);  color: #7B1C1C; }
+  .feedback .fb-title  { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .feedback .fb-ref    { font-size: 11.5px; color: var(--muted); margin-top: 6px; font-style: italic; }
+
+  .btn-next {
+    margin-top: 20px; padding: 11px 28px; background: var(--navy);
+    color: white; border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-next:hover { background: #142D55; }
+
+  .results-card {
+    background: white; border-radius: 12px;
+    padding: 36px 32px; box-shadow: var(--shadow);
+    border-top: 4px solid var(--orange); animation: fadeIn 0.3s ease;
+  }
+  .results-card h2 { color: var(--navy); font-size: 22px; margin-bottom: 8px; }
+
+  .score-ring-wrap { display: flex; flex-direction: column; align-items: center; margin: 24px 0; }
+  .score-circle {
+    width: 140px; height: 140px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin-bottom: 12px; font-weight: 700;
+  }
+  .score-circle .sc-pct { font-size: 36px; color: white; }
+  .score-circle .sc-raw { font-size: 14px; color: rgba(255,255,255,0.85); margin-top: 2px; }
+  .score-success { background: var(--success); }
+  .score-partial { background: var(--warn); }
+  .score-fail    { background: var(--danger); }
+  .score-message { font-size: 15px; font-weight: 700; color: var(--navy); text-align: center; }
+  .score-sub     { font-size: 13px; color: var(--muted); text-align: center; margin-top: 4px; }
+
+  .stats-row { display: flex; gap: 12px; margin: 20px 0; flex-wrap: wrap; }
+  .stat-box { flex: 1; min-width: 100px; background: var(--light); border-radius: 8px; padding: 14px; text-align: center; }
+  .stat-box .sb-val { font-size: 22px; font-weight: 700; color: var(--navy); }
+  .stat-box .sb-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .review-list { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .review-item { border-radius: 8px; overflow: hidden; border: 1.5px solid var(--mid); }
+  .review-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; cursor: pointer; background: var(--light);
+  }
+  .review-icon { font-size: 16px; flex-shrink: 0; }
+  .review-q { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
+  .review-chevron { color: var(--muted); font-size: 12px; transition: transform 0.2s; }
+  .review-item.open .review-chevron { transform: rotate(90deg); }
+  .review-body { display: none; padding: 12px 14px; font-size: 13px; background: white; border-top: 1px solid var(--mid); }
+  .review-item.open .review-body { display: block; }
+  .review-body .rv-your    { color: var(--danger); margin-bottom: 4px; }
+  .review-body .rv-correct { color: var(--success); margin-bottom: 4px; }
+  .review-body .rv-expl    { color: var(--muted); font-style: italic; font-size: 12px; }
+
+  .tracking-box {
+    margin-top: 20px; padding: 12px 16px; border-radius: 8px;
+    font-size: 13px; display: flex; align-items: center; gap: 10px;
+  }
+  .tracking-box.sent    { background: #EBF8F0; color: var(--success); }
+  .tracking-box.pending { background: #FFF7ED; color: var(--warn); }
+  .tracking-box.error   { background: #FDECEA; color: var(--danger); }
+
+  .footer {
+    background: var(--navy); color: #A8BEDD;
+    text-align: center; padding: 14px 16px; font-size: 11px; margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-shield">🔄</span>
+  <div>
+    <div class="header-title">Quiz Sécurité – AP2I</div>
+    <div class="header-sub">Retour d'expérience et remontée d'informations · Octobre 2026</div>
+  </div>
+</div>
+
+<div class="main" id="app"></div>
+
+<div class="footer">
+  AP2I – Filiale TREMA Multitechnique · Reims · Formation Sécurité · Octobre 2026
+</div>
+
+<script>
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxAcSxX0gp_OMD_DreugvJLvO2QYkqCpv_lmLUP4Bzww9fbfFkPaquzq0_zzQ1kurzANg/exec'; 
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QUESTIONS
+// ═══════════════════════════════════════════════════════════════════════════
+const QUESTIONS = [
+  {
+    q: "Comment le référentiel définit-il le retour d'expérience ?",
+    choices: [
+      "Un échange informel entre techniciens à la fin d'un chantier",
+      "Un compte rendu financier remis au client à la réception des travaux",
+      "Une analyse méthodique et rigoureuse d'un évènement afin d'en tirer des enseignements pour l'avenir",
+      "Un document rédigé uniquement après un accident avec arrêt de travail"
+    ],
+    answer: 2,
+    expl: "Trois mots comptent dans cette définition. Méthodique : le REX suit une méthode définie, pas une discussion de couloir. Rigoureuse : on travaille sur des faits établis. Pour l'avenir : le but est d'éviter que l'évènement se reproduise, pas de refaire l'histoire.",
+    ref: "Ancré MASE v2024 (lexique : retour d'expérience)"
+  },
+  {
+    q: "Qu'est-ce qu'une causerie sécurité ?",
+    choices: [
+      "Un entretien individuel entre un salarié et son responsable hiérarchique",
+      "Une réunion planifiée et organisée régulièrement, abordant des thématiques spécifiques",
+      "Une réunion convoquée uniquement à la suite d'un accident du travail",
+      "Un affichage obligatoire apposé dans les locaux de l'entreprise"
+    ],
+    answer: 1,
+    expl: "La causerie est un format de fond : un sujet précis, traité régulièrement, dans un échange où chacun apporte ce qu'il a vu sur le terrain. Elle se distingue du quart d'heure sécurité, plus court et lié à l'intervention du jour, et du flash SSE, qui diffuse rapidement l'enseignement tiré d'un évènement.",
+    ref: "Ancré MASE v2024 (lexique : causerie et réunion SSE)"
+  },
+  {
+    q: "Vous avez trouvé une façon plus sûre de câbler une armoire, qui vous fait aussi gagner du temps. Faut-il la remonter ?",
+    choices: [
+      "Oui : les idées et les points positifs alimentent le dispositif de remontée au même titre que les évènements",
+      "Non : la remontée d'informations ne concerne que les situations dangereuses et les accidents",
+      "Seulement si un responsable vous le demande explicitement",
+      "Seulement si la méthode a été validée au préalable par un organisme extérieur"
+    ],
+    answer: 0,
+    expl: "Le dispositif de remontée s'alimente de plusieurs sources : les évènements, mais aussi les réunions SSE, les entretiens individuels, les boîtes à idées et challenges, les audits et contrôles, et les difficultés rencontrées. Une bonne pratique partagée vaut d'être diffusée aux autres équipes.",
+    ref: "Ancré MASE v2024 (exigence 1.5 : sources du dispositif de remontées d'informations)"
+  },
+  {
+    q: "Sur quoi le référentiel juge-t-il un dispositif de remontée d'informations ?",
+    choices: [
+      "Sur le nombre de supports mis à disposition des salariés",
+      "Sur l'ancienneté du dispositif dans l'entreprise",
+      "Sur le fait qu'il soit formalisé dans une procédure écrite",
+      "Sur sa capacité à alimenter réellement le plan d'actions SSE, en nombre et en qualité"
+    ],
+    answer: 3,
+    expl: "L'existence du dispositif ne suffit pas : ce qui est évalué, c'est ce qu'il produit. Une boîte à idées installée mais vide ne démontre rien. Vos remontées sont la matière première qui alimente le plan d'actions.",
+    ref: "Ancré MASE v2024 (exigence 1.5)"
+  },
+  {
+    q: "À quoi sert la méthode des 5 pourquoi ?",
+    choices: [
+      "À dépasser la cause apparente pour remonter jusqu'à la cause organisationnelle",
+      "À répartir les responsabilités entre les personnes impliquées dans un évènement",
+      "À évaluer le coût financier d'un incident sur un chantier",
+      "À classer les évènements par ordre de gravité décroissante"
+    ],
+    answer: 0,
+    expl: "En enchaînant les questions, on passe du geste immédiat à ce qui l'a rendu possible : une procédure absente, un passage de relais non formalisé, un moyen manquant. La cause utile est la dernière de la chaîne, pas la première. Le référentiel cite cette méthode parmi celles utilisables pour l'analyse approfondie.",
+    ref: "Ancré MASE v2024 (exigence 4.1 : méthodes d'analyse approfondie)"
+  },
+  {
+    q: "Une analyse d'évènement se conclut par « erreur humaine du technicien ». Que faut-il en penser ?",
+    choices: [
+      "C'est une conclusion satisfaisante si le technicien reconnaît son erreur",
+      "C'est une cause fondamentale valable dès lors qu'elle est constatée par un témoin",
+      "L'analyse s'est arrêtée trop tôt : derrière un geste, il y a une organisation, une consigne ou un moyen qui l'a rendu possible",
+      "C'est acceptable pour un presqu'accident, mais pas pour un accident"
+    ],
+    answer: 2,
+    expl: "L'analyse approfondie doit identifier les causes directes ET les causes fondamentales, celles qui se situent à tous les niveaux de l'organisation. S'arrêter à l'erreur humaine ne produit aucune action préventive utile — et garantit que l'évènement se reproduira.",
+    ref: "Ancré MASE v2024 (exigence 4.1 : causes directes et causes fondamentales)"
+  },
+  {
+    q: "Quelle est la différence entre une action corrective et une action préventive ?",
+    choices: [
+      "L'action corrective est décidée par l'encadrement, l'action préventive par le salarié",
+      "L'action corrective concerne le matériel, l'action préventive concerne les personnes",
+      "L'action corrective est obligatoire, l'action préventive est facultative",
+      "L'action corrective traite la cause directe, l'action préventive traite la cause fondamentale"
+    ],
+    answer: 3,
+    expl: "Remettre en état, reconsigner ou remplacer un équipement corrige ce qui a immédiatement produit l'évènement. Modifier une procédure, un mode opératoire ou une formation traite ce qui l'a rendu possible. Les deux sont nécessaires, et la réalisation de chacune est suivie dans le temps.",
+    ref: "Ancré MASE v2024 (exigence 4.1)"
+  },
+  {
+    q: "Le bilan de fin de chantier doit mettre en évidence plusieurs éléments. Lequel de ces quatre en fait partie ?",
+    choices: [
+      "La marge commerciale réalisée sur l'intervention",
+      "L'écart entre le travail prescrit lors de la préparation et le travail réellement effectué",
+      "L'évaluation individuelle de la performance de chaque intervenant",
+      "Le classement des chantiers de l'année par durée d'exécution"
+    ],
+    answer: 1,
+    expl: "Le bilan met en évidence les points positifs, les points à améliorer, l'efficacité des analyses de risques et des modes opératoires, les faits marquants, et les écarts entre la préparation et la réalisation. Il peut entraîner la révision du DUER, du plan de prévention ou des modes opératoires.",
+    ref: "Ancré MASE v2024 (exigence 3.4 : bilan et retour d'expérience SSE)"
+  },
+  {
+    q: "Sur un chantier, vous avez dû adapter le mode opératoire prévu parce que l'accès réel ne correspondait pas à la préparation. Que faites-vous ?",
+    choices: [
+      "Rien : le travail a été fait correctement, l'adaptation relève de votre expérience",
+      "Vous le mentionnez uniquement si l'adaptation a causé un incident",
+      "Vous le notez pour vous, afin de vous en souvenir au prochain chantier similaire",
+      "Vous le signalez au bilan : l'écart entre travail prescrit et travail réel permet de corriger la préparation pour tout le monde"
+    ],
+    answer: 3,
+    expl: "Signaler un écart n'est pas s'accuser. Un écart passé sous silence se reproduira au prochain chantier, avec peut-être quelqu'un de moins expérimenté. Un écart signalé permet de réviser la préparation et l'analyse des risques au bénéfice de toutes les équipes.",
+    ref: "Ancré MASE v2024 (exigence 3.4 : écarts travail prescrit / travail réel)"
+  },
+  {
+    q: "Une remontée a été faite, analysée, et des actions ont été décidées — mais rien n'est jamais redescendu aux équipes. Quelle en est la conséquence principale ?",
+    choices: [
+      "Le REX est incomplet et les remontées suivantes se tarissent : le partage en fait partie intégrante",
+      "Les indicateurs de fréquence et de gravité deviennent inexploitables",
+      "Aucune : l'essentiel est que les actions aient été décidées et mises en œuvre",
+      "L'entreprise doit recommencer entièrement l'analyse de l'évènement"
+    ],
+    answer: 0,
+    expl: "Le retour d'expérience se conclut par le partage — flash SSE, causerie, réunion SSE — et par la capitalisation dans les analyses de risques et les modes opératoires. Si personne n'apprend ce qui a été décidé, plus personne ne voit l'intérêt de remonter : la boucle se casse à l'endroit le plus facile à négliger.",
+    ref: "Ancré MASE v2024 (exigences 4.1 et 1.7 : retour d'expérience, information et animation SSE)"
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+const state = {
+  screen: 'participant',
+  participant: { prenom: '', nom: '', poste: '' },
+  current: 0,
+  answers: [],
+  startTime: null,
+  trackingStatus: 'pending',
+};
+
+const app = document.getElementById('app');
+
+function render() {
+  if (state.screen === 'participant') renderParticipant();
+  else if (state.screen === 'quiz')   renderQuiz();
+  else                                renderResults();
+}
+
+// ── PARTICIPANT ───────────────────────────────────────────────────────────
+function renderParticipant() {
+  app.innerHTML = `
+    <div class="participant-card">
+      <h2>Vos informations</h2>
+      <p>Renseignez vos coordonnées avant de commencer. Vos résultats seront transmis automatiquement.</p>
+
+      <div class="topic-banner">
+        <span class="topic-icon">🔄</span>
+        <div>
+          <h3>Formation : Retour d'expérience et remontée d'informations</h3>
+          <p>10 questions · Définition du REX · Causerie sécurité · Analyse des causes · Bilan et capitalisation</p>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="prenom">Prénom *</label>
+          <input type="text" id="prenom" placeholder="Votre prénom" value="${state.participant.prenom}">
+        </div>
+        <div class="form-group">
+          <label for="nom">Nom *</label>
+          <input type="text" id="nom" placeholder="Votre nom" value="${state.participant.nom}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="poste">Poste / Fonction</label>
+          <input type="text" id="poste" placeholder="Ex : Électricien industriel, Automaticien…" value="${state.participant.poste !== '-' ? state.participant.poste : ''}">
+        </div>
+      </div>
+      <button class="btn-start" onclick="startQuiz()">Commencer le quiz →</button>
+    </div>
+  `;
+}
+
+function startQuiz() {
+  const p = document.getElementById('prenom').value.trim();
+  const n = document.getElementById('nom').value.trim();
+  const po = document.getElementById('poste').value.trim();
+  if (!p || !n) { alert('Veuillez renseigner votre prénom et votre nom.'); return; }
+  state.participant = { prenom: p, nom: n, poste: po || '-' };
+  state.current = 0; state.answers = [];
+  state.startTime = Date.now(); state.screen = 'quiz';
+  render();
+}
+
+// ── QUIZ ──────────────────────────────────────────────────────────────────
+function renderQuiz() {
+  const idx = state.current;
+  const total = QUESTIONS.length;
+  const q = QUESTIONS[idx];
+  const answered = state.answers[idx] !== undefined;
+  const chosen = state.answers[idx];
+  const pct = Math.round((idx / total) * 100);
+  const letters = ['A', 'B', 'C', 'D'];
+
+  app.innerHTML = `
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span class="progress-label">Question ${idx + 1} / ${total}</span>
+        <span class="progress-count">${pct}% complété</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>
+
+    <div class="question-card">
+      <div class="question-meta">Retour d'expérience et remontée d'informations</div>
+      <div class="question-text">${q.q}</div>
+
+      <div class="options" id="optList">
+        ${q.choices.map((c, i) => {
+          let cls = 'option';
+          if (answered) {
+            cls += ' disabled';
+            if (i === q.answer)  cls += ' correct';
+            else if (i === chosen && i !== q.answer) cls += ' wrong';
+          }
+          return `<div class="${cls}" onclick="selectAnswer(${i})">
+            <span class="opt-letter">${letters[i]}</span>
+            <span>${c}</span>
+          </div>`;
+        }).join('')}
+      </div>
+
+      ${answered ? `
+        <div class="feedback ${chosen === q.answer ? 'correct-fb' : 'wrong-fb'}">
+          <div class="fb-title">${chosen === q.answer ? '✅ Bonne réponse !' : '❌ Réponse incorrecte'}</div>
+          ${q.expl}
+          <div class="fb-ref">${q.ref}</div>
+        </div>
+        <button class="btn-next" onclick="nextQuestion()">
+          ${idx + 1 < total ? 'Question suivante →' : 'Voir mes résultats →'}
+        </button>
+      ` : ''}
+    </div>
+  `;
+}
+
+function selectAnswer(i) {
+  if (state.answers[state.current] !== undefined) return;
+  state.answers[state.current] = i;
+  render();
+}
+
+function nextQuestion() {
+  if (state.current + 1 < QUESTIONS.length) {
+    state.current++;
+    render();
+  } else {
+    state.screen = 'results';
+    sendToSheets();
+    render();
+  }
+}
+
+// ── RESULTS ───────────────────────────────────────────────────────────────
+function renderResults() {
+  const total = QUESTIONS.length;
+  const score = state.answers.filter((a, i) => a === QUESTIONS[i].answer).length;
+  const pct   = Math.round((score / total) * 100);
+  const dur   = Math.round((Date.now() - state.startTime) / 60000);
+
+  const ringCls = pct >= 70 ? 'score-success' : pct >= 50 ? 'score-partial' : 'score-fail';
+  const msg = pct >= 70
+    ? 'Formation validée – Bon travail !'
+    : pct >= 50
+    ? 'Des lacunes persistent – Revoir le support de formation'
+    : 'Score insuffisant – Une révision complète est nécessaire';
+
+  const reviewItems = QUESTIONS.map((q, i) => {
+    const a = state.answers[i];
+    const ok = a === q.answer;
+    const letters = ['A', 'B', 'C', 'D'];
+    return `
+      <div class="review-item" id="rv${i}">
+        <div class="review-header" onclick="toggleReview(${i})">
+          <span class="review-icon">${ok ? '✅' : '❌'}</span>
+          <span class="review-q">Q${i+1} – ${q.q.substring(0, 70)}…</span>
+          <span class="review-chevron">▶</span>
+        </div>
+        <div class="review-body">
+          ${!ok ? `<div class="rv-your">Votre réponse : ${letters[a]} – ${q.choices[a]}</div>` : ''}
+          <div class="rv-correct">✔ Bonne réponse : ${letters[q.answer]} – ${q.choices[q.answer]}</div>
+          <div class="rv-expl">${q.expl}</div>
+          <div class="rv-expl" style="margin-top:4px;">${q.ref}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  app.innerHTML = `
+    <div class="results-card">
+      <h2>Résultats de ${state.participant.prenom} ${state.participant.nom}</h2>
+      <p style="color:var(--muted);font-size:13px;margin-top:4px;">
+        Poste : ${state.participant.poste} &nbsp;·&nbsp; Durée : ${dur} min &nbsp;·&nbsp; Octobre 2026
+      </p>
+
+      <div class="score-ring-wrap">
+        <div class="score-circle ${ringCls}">
+          <span class="sc-pct">${pct}%</span>
+          <span class="sc-raw">${score} / ${total}</span>
+        </div>
+        <div class="score-message">${msg}</div>
+        <div class="score-sub">Seuil de validation : 70%</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="sb-val" style="color:var(--success)">${score}</div>
+          <div class="sb-lbl">Bonnes réponses</div>
+        </div>
+        <div class="stat-box">
+          <div class="sb-val" style="color:var(--danger)">${total - score}</div>
+          <div class="sb-lbl">Mauvaises réponses</div>
+        </div>
+        <div class="stat-box">
+          <div class="sb-val">${dur}</div>
+          <div class="sb-lbl">Minutes</div>
+        </div>
+      </div>
+
+      <div class="tracking-box ${state.trackingStatus === 'sent' ? 'sent' : state.trackingStatus === 'error' ? 'error' : 'pending'}" id="trackBox">
+        ${state.trackingStatus === 'sent'
+          ? '✅ Résultats enregistrés dans Google Sheets'
+          : state.trackingStatus === 'error'
+          ? "⚠️ Erreur d'envoi – vérifiez la configuration dans le fichier HTML"
+          : '⏳ Envoi en cours…'}
+      </div>
+
+      <h3 style="margin-top:24px;color:var(--navy);font-size:16px;">Revue question par question</h3>
+      <div class="review-list">${reviewItems}</div>
+
+      <button class="btn-next" style="margin-top:24px" onclick="location.reload()">Recommencer le quiz</button>
+    </div>
+  `;
+}
+
+function toggleReview(i) {
+  const el = document.getElementById('rv' + i);
+  el.classList.toggle('open');
+  el.querySelector('.review-chevron').textContent = el.classList.contains('open') ? '▼' : '▶';
+}
+
+// ── TRACKING ──────────────────────────────────────────────────────────────
+async function sendToSheets() {
+  if (!SHEETS_URL) { state.trackingStatus = 'error'; return; }
+  const now   = new Date();
+  const total = QUESTIONS.length;
+  const score = state.answers.filter((a, i) => a === QUESTIONS[i].answer).length;
+  const dur   = Math.round((Date.now() - state.startTime) / 60000);
+  const details = QUESTIONS.map((q, i) => `Q${i+1}:${state.answers[i] === q.answer ? 'OK' : 'KO'}`).join(' | ');
+
+  const payload = {
+    date:        now.toLocaleDateString('fr-FR'),
+    heure:       now.toLocaleTimeString('fr-FR'),
+    prenom:      state.participant.prenom,
+    nom:         state.participant.nom,
+    poste:       state.participant.poste || '-',
+    score:       score,
+    total:       total,
+    pourcentage: Math.round((score / total) * 100) + '%',
+    duree:       dur,
+    details:     details,
+    formation:   "Octobre 2026 – Retour d'expérience et remontée d'informations"
+  };
+
+  try {
+    await fetch(SHEETS_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    state.trackingStatus = 'sent';
+  } catch(err) {
+    state.trackingStatus = 'error';
+  }
+
+  const tb = document.getElementById('trackBox');
+  if (tb) {
+    tb.className = 'tracking-box ' + (state.trackingStatus === 'sent' ? 'sent' : 'error');
+    tb.textContent = state.trackingStatus === 'sent'
+      ? '✅ Résultats enregistrés dans Google Sheets'
+      : "⚠️ Erreur d'envoi – vérifiez la configuration dans le fichier HTML";
+  }
+}
+
+render();
+</script>
+</body>
+</html>
