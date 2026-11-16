@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Sécurité – AP2I – Vérification et conformité des équipements</title>
+<style>
+  :root {
+    --navy:    #1B3A6B;
+    --orange:  #E8521A;
+    --light:   #F4F6F9;
+    --white:   #FFFFFF;
+    --text:    #1C2B42;
+    --muted:   #607090;
+    --success: #1E7E34;
+    --danger:  #B91C1C;
+    --warn:    #D97706;
+    --mid:     #D0D9E8;
+    --shadow:  0 4px 16px rgba(27,58,107,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Calibri, Arial, sans-serif; background: var(--light); color: var(--text); min-height: 100vh; }
+
+  .header {
+    background: var(--navy); padding: 18px 32px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  .header-shield { font-size: 28px; }
+  .header-title { color: white; font-size: 18px; font-weight: 700; }
+  .header-sub { color: #A8BEDD; font-size: 12px; margin-top: 2px; }
+
+  .main { max-width: 800px; margin: 0 auto; padding: 32px 16px 64px; }
+
+  .participant-card {
+    background: white; border-radius: 12px;
+    padding: 32px; box-shadow: var(--shadow);
+    border-top: 4px solid var(--orange);
+  }
+  .participant-card h2 { color: var(--navy); font-size: 20px; margin-bottom: 8px; }
+  .participant-card p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .form-row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .form-group { flex: 1; min-width: 200px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+  .form-group input {
+    width: 100%; padding: 10px 14px; border: 1.5px solid var(--mid);
+    border-radius: 8px; font-size: 14px; color: var(--text);
+    background: var(--light); transition: border 0.2s;
+  }
+  .form-group input:focus { outline: none; border-color: var(--navy); background: white; }
+
+  .topic-banner {
+    background: var(--navy); color: white;
+    border-radius: 10px; padding: 16px 20px;
+    margin-bottom: 24px; display: flex; gap: 14px; align-items: flex-start;
+  }
+  .topic-banner .topic-icon { font-size: 28px; flex-shrink: 0; }
+  .topic-banner h3 { font-size: 16px; margin-bottom: 4px; }
+  .topic-banner p { font-size: 12px; color: #A8BEDD; }
+
+  .btn-start {
+    width: 100%; padding: 14px; background: var(--navy);
+    color: white; border: none; border-radius: 8px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: background 0.2s; margin-top: 8px;
+  }
+  .btn-start:hover { background: #142D55; }
+
+  .progress-wrap { margin-bottom: 28px; }
+  .progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .progress-label { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .progress-count { font-size: 13px; color: var(--muted); }
+  .progress-bar { height: 8px; background: var(--mid); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--navy); border-radius: 4px; transition: width 0.4s ease; }
+
+  .question-card {
+    background: white; border-radius: 12px;
+    padding: 28px 32px; box-shadow: var(--shadow);
+    border-top: 4px solid var(--navy);
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .question-meta { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .question-text { font-size: 17px; font-weight: 700; color: var(--navy); line-height: 1.5; margin-bottom: 24px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 13px 18px; border: 2px solid var(--mid);
+    border-radius: 10px; cursor: pointer; display: flex; gap: 12px;
+    align-items: flex-start; background: var(--light); transition: all 0.18s;
+    font-size: 14px; color: var(--text); line-height: 1.4;
+  }
+  .option:hover:not(.disabled) { border-color: var(--navy); background: #EDF2FA; }
+  .option .opt-letter {
+    font-size: 12px; font-weight: 700; color: var(--navy);
+    background: var(--mid); border-radius: 50%;
+    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .option.correct  { border-color: var(--success); background: #EBF8F0; }
+  .option.wrong    { border-color: var(--danger);  background: #FDECEA; }
+  .option.correct .opt-letter { background: var(--success); color: white; }
+  .option.wrong .opt-letter   { background: var(--danger);  color: white; }
+  .option.disabled { cursor: default; }
+
+  .feedback {
+    margin-top: 20px; padding: 14px 18px; border-radius: 10px;
+    font-size: 13.5px; line-height: 1.55; animation: fadeIn 0.3s ease;
+  }
+  .feedback.correct-fb { background: #EBF8F0; border-left: 4px solid var(--success); color: #154A22; }
+  .feedback.wrong-fb   { background: #FDECEA; border-left: 4px solid var(--danger);  color: #7B1C1C; }
+  .feedback .fb-title  { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .feedback .fb-ref    { font-size: 11.5px; color: var(--muted); margin-top: 6px; font-style: italic; }
+
+  .btn-next {
+    margin-top: 20px; padding: 11px 28px; background: var(--navy);
+    color: white; border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-next:hover { background: #142D55; }
+
+  .results-card {
+    background: white; border-radius: 12px;
+    padding: 36px 32px; box-shadow: var(--shadow);
+    border-top: 4px solid var(--orange); animation: fadeIn 0.3s ease;
+  }
+  .results-card h2 { color: var(--navy); font-size: 22px; margin-bottom: 8px; }
+
+  .score-ring-wrap { display: flex; flex-direction: column; align-items: center; margin: 24px 0; }
+  .score-circle {
+    width: 140px; height: 140px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin-bottom: 12px; font-weight: 700;
+  }
+  .score-circle .sc-pct { font-size: 36px; color: white; }
+  .score-circle .sc-raw { font-size: 14px; color: rgba(255,255,255,0.85); margin-top: 2px; }
+  .score-success { background: var(--success); }
+  .score-partial { background: var(--warn); }
+  .score-fail    { background: var(--danger); }
+  .score-message { font-size: 15px; font-weight: 700; color: var(--navy); text-align: center; }
+  .score-sub     { font-size: 13px; color: var(--muted); text-align: center; margin-top: 4px; }
+
+  .stats-row { display: flex; gap: 12px; margin: 20px 0; flex-wrap: wrap; }
+  .stat-box { flex: 1; min-width: 100px; background: var(--light); border-radius: 8px; padding: 14px; text-align: center; }
+  .stat-box .sb-val { font-size: 22px; font-weight: 700; color: var(--navy); }
+  .stat-box .sb-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .review-list { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .review-item { border-radius: 8px; overflow: hidden; border: 1.5px solid var(--mid); }
+  .review-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; cursor: pointer; background: var(--light);
+  }
+  .review-icon { font-size: 16px; flex-shrink: 0; }
+  .review-q { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
+  .review-chevron { color: var(--muted); font-size: 12px; transition: transform 0.2s; }
+  .review-item.open .review-chevron { transform: rotate(90deg); }
+  .review-body { display: none; padding: 12px 14px; font-size: 13px; background: white; border-top: 1px solid var(--mid); }
+  .review-item.open .review-body { display: block; }
+  .review-body .rv-your    { color: var(--danger); margin-bottom: 4px; }
+  .review-body .rv-correct { color: var(--success); margin-bottom: 4px; }
+  .review-body .rv-expl    { color: var(--muted); font-style: italic; font-size: 12px; }
+
+  .tracking-box {
+    margin-top: 20px; padding: 12px 16px; border-radius: 8px;
+    font-size: 13px; display: flex; align-items: center; gap: 10px;
+  }
+  .tracking-box.sent    { background: #EBF8F0; color: var(--success); }
+  .tracking-box.pending { background: #FFF7ED; color: var(--warn); }
+  .tracking-box.error   { background: #FDECEA; color: var(--danger); }
+
+  .footer {
+    background: var(--navy); color: #A8BEDD;
+    text-align: center; padding: 14px 16px; font-size: 11px; margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-shield">🔧</span>
+  <div>
+    <div class="header-title">Quiz Sécurité – AP2I</div>
+    <div class="header-sub">Vérification et conformité des équipements · Novembre 2026</div>
+  </div>
+</div>
+
+<div class="main" id="app"></div>
+
+<div class="footer">
+  AP2I – Filiale TREMA Multitechnique · Reims · Formation Sécurité · Novembre 2026
+</div>
+
+<script>
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxAcSxX0gp_OMD_DreugvJLvO2QYkqCpv_lmLUP4Bzww9fbfFkPaquzq0_zzQ1kurzANg/exec'; 
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QUESTIONS
+// ═══════════════════════════════════════════════════════════════════════════
+const QUESTIONS = [
+  {
+    q: "Le contrôle périodique d'une meuleuse est à jour, réalisé il y a trois mois. Devez-vous encore la vérifier avant de l'utiliser ?",
+    choices: [
+      "Oui : un contrôle périodique à jour ne dispense jamais de la vérification par l'utilisateur avant chaque emploi",
+      "Non, tant que le contrôle date de moins de six mois",
+      "Non, sauf si l'outil a changé de propriétaire depuis",
+      "Uniquement si vous n'êtes pas la personne qui l'a utilisée en dernier"
+    ],
+    answer: 0,
+    expl: "Les deux niveaux répondent à des objectifs différents. Le contrôle périodique déceler les détériorations sur la durée ; la vérification avant usage détecte ce qui s'est passé depuis — une chute, un choc, une entaille de câble. Un contrôle vieux de trois mois ne dit rien de l'état d'un outil tombé la semaine dernière.",
+    ref: "Ancré MASE v2024 (exigence 3.3) ; source externe : Code du travail, art. R4322-1"
+  },
+  {
+    q: "À quelle fréquence l'état de conservation d'un échafaudage en service doit-il être examiné ?",
+    choices: [
+      "Une fois par semaine",
+      "Une fois par mois",
+      "Quotidiennement",
+      "Uniquement avant le premier montage"
+    ],
+    answer: 2,
+    expl: "L'arrêté du 21 décembre 2004 prévoit un examen quotidien de l'état de conservation, destiné à s'assurer que l'échafaudage n'a pas subi de dégradation perceptible. S'y ajoutent un examen approfondi de l'état de conservation tous les trois mois, et des vérifications avant toute mise ou remise en service.",
+    ref: "Source externe : arrêté du 21 décembre 2004 relatif aux vérifications des échafaudages"
+  },
+  {
+    q: "Quelle est la périodicité de la vérification générale d'une nacelle élévatrice de personnes (PEMP) ?",
+    choices: [
+      "Tous les trois mois",
+      "Tous les six mois",
+      "Tous les douze mois",
+      "Tous les deux ans"
+    ],
+    answer: 1,
+    expl: "L'arrêté du 1er mars 2004 fixe la vérification générale périodique des plates-formes élévatrices mobiles de personnes à six mois, en plus de la vérification lors de la mise en service. Les appareils de levage installés à demeure relèvent, eux, d'une périodicité de douze mois.",
+    ref: "Source externe : arrêté du 1er mars 2004 relatif aux vérifications des appareils et accessoires de levage"
+  },
+  {
+    q: "L'outillage électroportatif ne figure pas dans la liste réglementaire des vérifications générales périodiques. Qu'en conclure ?",
+    choices: [
+      "Qu'aucun contrôle n'est nécessaire tant que l'outil fonctionne",
+      "Qu'il revient à chaque utilisateur de décider s'il souhaite le faire contrôler",
+      "Que seul le fournisseur est responsable de son état",
+      "Que l'obligation de maintien en état de conformité subsiste, et que la notice du fabricant et l'organisation de l'employeur prennent le relais"
+    ],
+    answer: 3,
+    expl: "La liste réglementaire ne couvre que certaines catégories : appareils de levage, engins de chantier, échafaudages et quelques machines à risques spécifiques. Pour les autres équipements, l'employeur définit une organisation répondant au même objectif de sécurité. Le référentiel place d'ailleurs les notices fabricants au même rang que la réglementation.",
+    ref: "Source externe : INRS, vérifications initiales ou périodiques des machines ; ancré MASE v2024 (exigence 1.5)"
+  },
+  {
+    q: "Vous sortez une perceuse dont la gaine du câble est entaillée sur deux centimètres, sans conducteur visible. Que faites-vous ?",
+    choices: [
+      "Vous l'utilisez en évitant de manipuler le câble à cet endroit",
+      "Vous réparez provisoirement avec du ruban adhésif isolant",
+      "Vous cessez l'usage, rendez l'outil inutilisable, l'étiquetez hors service et le signalez le jour même",
+      "Vous la remettez dans le camion pour la faire voir à l'atelier au prochain passage"
+    ],
+    answer: 2,
+    expl: "Une réparation de fortune ne reconstitue pas la protection d'origine. Remettre l'outil dans le camion sans étiquette ni signalement le remet en circulation au chantier suivant, entre les mains de quelqu'un qui ignore le défaut. Les quatre gestes sont : arrêter, rendre inutilisable, identifier, signaler.",
+    ref: "Ancré MASE v2024 (exigences 1.5 et 3.3)"
+  },
+  {
+    q: "Quels documents doivent accompagner un équipement de travail sur le lieu d'intervention ?",
+    choices: [
+      "Le bon de commande et la facture d'achat",
+      "Uniquement le certificat de conformité",
+      "Le contrat d'assurance de l'entreprise",
+      "La notice du constructeur, le certificat de conformité, le rapport de vérification et le carnet de maintenance"
+    ],
+    answer: 3,
+    expl: "Le référentiel exige que ces documents réglementaires soient disponibles là où les travaux sont réalisés. Un équipement sans ses documents sur le chantier est un équipement dont personne ne peut prouver la conformité, ni devant un client, ni devant un auditeur.",
+    ref: "Ancré MASE v2024 (exigences 3.2 et 3.3)"
+  },
+  {
+    q: "Un équipement a été démonté puis remonté après une modification. Que faut-il faire avant de le remettre en service ?",
+    choices: [
+      "Une vérification de remise en service, prévue spécifiquement pour ce cas",
+      "Rien de particulier si la vérification périodique est encore valide",
+      "Une simple vérification visuelle par l'utilisateur suffit",
+      "Attendre la prochaine échéance de vérification périodique"
+    ],
+    answer: 0,
+    expl: "Trois moments distincts sont prévus par le Code du travail : la vérification initiale à la mise en service, les vérifications générales périodiques, et la vérification lors de la remise en service après démontage, remontage ou modification susceptible de mettre en cause la sécurité. Aucun ne remplace les autres.",
+    ref: "Source externe : Code du travail, art. R4323-22, R4323-23 à R4323-27 et R4323-28"
+  },
+  {
+    q: "Que dit la réglementation sur l'usage d'une échelle comme poste de travail ?",
+    choices: [
+      "Elle peut servir de poste de travail sans restriction si elle est en bon état",
+      "Elle est interdite comme poste de travail en toutes circonstances",
+      "C'est d'abord un moyen d'accès ; elle ne sert de poste de travail que lorsque le recours à un équipement plus sûr n'est pas justifié au regard du risque et de la courte durée",
+      "Elle peut servir de poste de travail à condition d'être utilisée à deux"
+    ],
+    answer: 2,
+    expl: "L'échelle est avant tout un moyen d'accès. Son usage comme poste de travail est encadré : il faut que le recours à un équipement assurant une protection collective ne soit pas justifié, en raison du faible risque et de la courte durée ou de caractéristiques du site que l'employeur ne peut modifier.",
+    ref: "Source externe : Code du travail, art. R4323-63"
+  },
+  {
+    q: "Où sont consignés les résultats des vérifications périodiques et les justifications des travaux réalisés pour lever les défauts constatés ?",
+    choices: [
+      "Dans le dossier commercial du chantier concerné",
+      "Sur le registre de sécurité, auquel sont annexés les rapports des organismes accrédités",
+      "Dans le carnet de bord du véhicule de l'intervenant",
+      "Nulle part : la conservation des résultats n'est pas obligatoire"
+    ],
+    answer: 1,
+    expl: "Le registre de sécurité rassemble les résultats des vérifications obligatoires et les justifications des travaux réalisés pour remédier aux défauts. Lorsqu'un organisme accrédité intervient, son rapport y est annexé. Un contrôle non consigné est un contrôle qui, pour l'audit comme pour l'inspection du travail, n'a pas eu lieu.",
+    ref: "Source externe : Code du travail, art. L4711-1, L4711-5, R4323-26 et R4226-14"
+  },
+  {
+    q: "Le référentiel MASE demande un dispositif permettant de réaliser les contrôles obligatoires. Que demande-t-il en plus ?",
+    choices: [
+      "Que le dispositif permette de suivre et de valider la levée de l'ensemble des écarts constatés",
+      "Que les contrôles soient confiés exclusivement à un organisme extérieur",
+      "Que les contrôles soient réalisés systématiquement en dehors des heures de production",
+      "Que la liste des équipements soit affichée dans chaque véhicule d'intervention"
+    ],
+    answer: 0,
+    expl: "Constater un écart ne suffit pas. Le référentiel exige un dispositif permettant la levée de l'ensemble des écarts relevés lors des contrôles réglementaires obligatoires, avec un suivi jusqu'à leur résolution effective — par exemple dans un plan d'actions.",
+    ref: "Ancré MASE v2024 (exigence 1.5)"
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+const state = {
+  screen: 'participant',
+  participant: { prenom: '', nom: '', poste: '' },
+  current: 0,
+  answers: [],
+  startTime: null,
+  trackingStatus: 'pending',
+};
+
+const app = document.getElementById('app');
+
+function render() {
+  if (state.screen === 'participant') renderParticipant();
+  else if (state.screen === 'quiz')   renderQuiz();
+  else                                renderResults();
+}
+
+// ── PARTICIPANT ───────────────────────────────────────────────────────────
+function renderParticipant() {
+  app.innerHTML = `
+    <div class="participant-card">
+      <h2>Vos informations</h2>
+      <p>Renseignez vos coordonnées avant de commencer. Vos résultats seront transmis automatiquement.</p>
+
+      <div class="topic-banner">
+        <span class="topic-icon">🔧</span>
+        <div>
+          <h3>Formation : Vérification et conformité des équipements</h3>
+          <p>10 questions · Contrôles périodiques · Vérification avant usage · Matériel défectueux · Traçabilité</p>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="prenom">Prénom *</label>
+          <input type="text" id="prenom" placeholder="Votre prénom" value="${state.participant.prenom}">
+        </div>
+        <div class="form-group">
+          <label for="nom">Nom *</label>
+          <input type="text" id="nom" placeholder="Votre nom" value="${state.participant.nom}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="poste">Poste / Fonction</label>
+          <input type="text" id="poste" placeholder="Ex : Électricien industriel, Automaticien…" value="${state.participant.poste !== '-' ? state.participant.poste : ''}">
+        </div>
+      </div>
+      <button class="btn-start" onclick="startQuiz()">Commencer le quiz →</button>
+    </div>
+  `;
+}
+
+function startQuiz() {
+  const p = document.getElementById('prenom').value.trim();
+  const n = document.getElementById('nom').value.trim();
+  const po = document.getElementById('poste').value.trim();
+  if (!p || !n) { alert('Veuillez renseigner votre prénom et votre nom.'); return; }
+  state.participant = { prenom: p, nom: n, poste: po || '-' };
+  state.current = 0; state.answers = [];
+  state.startTime = Date.now(); state.screen = 'quiz';
+  render();
+}
+
+// ── QUIZ ──────────────────────────────────────────────────────────────────
+function renderQuiz() {
+  const idx = state.current;
+  const total = QUESTIONS.length;
+  const q = QUESTIONS[idx];
+  const answered = state.answers[idx] !== undefined;
+  const chosen = state.answers[idx];
+  const pct = Math.round((idx / total) * 100);
+  const letters = ['A', 'B', 'C', 'D'];
+
+  app.innerHTML = `
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span class="progress-label">Question ${idx + 1} / ${total}</span>
+        <span class="progress-count">${pct}% complété</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>
+
+    <div class="question-card">
+      <div class="question-meta">Vérification et conformité des équipements</div>
+      <div class="question-text">${q.q}</div>
+
+      <div class="options" id="optList">
+        ${q.choices.map((c, i) => {
+          let cls = 'option';
+          if (answered) {
+            cls += ' disabled';
+            if (i === q.answer)  cls += ' correct';
+            else if (i === chosen && i !== q.answer) cls += ' wrong';
+          }
+          return `<div class="${cls}" onclick="selectAnswer(${i})">
+            <span class="opt-letter">${letters[i]}</span>
+            <span>${c}</span>
+          </div>`;
+        }).join('')}
+      </div>
+
+      ${answered ? `
+        <div class="feedback ${chosen === q.answer ? 'correct-fb' : 'wrong-fb'}">
+          <div class="fb-title">${chosen === q.answer ? '✅ Bonne réponse !' : '❌ Réponse incorrecte'}</div>
+          ${q.expl}
+          <div class="fb-ref">${q.ref}</div>
+        </div>
+        <button class="btn-next" onclick="nextQuestion()">
+          ${idx + 1 < total ? 'Question suivante →' : 'Voir mes résultats →'}
+        </button>
+      ` : ''}
+    </div>
+  `;
+}
+
+function selectAnswer(i) {
+  if (state.answers[state.current] !== undefined) return;
+  state.answers[state.current] = i;
+  render();
+}
+
+function nextQuestion() {
+  if (state.current + 1 < QUESTIONS.length) {
+    state.current++;
+    render();
+  } else {
+    state.screen = 'results';
+    sendToSheets();
+    render();
+  }
+}
+
+// ── RESULTS ───────────────────────────────────────────────────────────────
+function renderResults() {
+  const total = QUESTIONS.length;
+  const score = state.answers.filter((a, i) => a === QUESTIONS[i].answer).length;
+  const pct   = Math.round((score / total) * 100);
+  const dur   = Math.round((Date.now() - state.startTime) / 60000);
+
+  const ringCls = pct >= 70 ? 'score-success' : pct >= 50 ? 'score-partial' : 'score-fail';
+  const msg = pct >= 70
+    ? 'Formation validée – Bon travail !'
+    : pct >= 50
+    ? 'Des lacunes persistent – Revoir le support de formation'
+    : 'Score insuffisant – Une révision complète est nécessaire';
+
+  const reviewItems = QUESTIONS.map((q, i) => {
+    const a = state.answers[i];
+    const ok = a === q.answer;
+    const letters = ['A', 'B', 'C', 'D'];
+    return `
+      <div class="review-item" id="rv${i}">
+        <div class="review-header" onclick="toggleReview(${i})">
+          <span class="review-icon">${ok ? '✅' : '❌'}</span>
+          <span class="review-q">Q${i+1} – ${q.q.substring(0, 70)}…</span>
+          <span class="review-chevron">▶</span>
+        </div>
+        <div class="review-body">
+          ${!ok ? `<div class="rv-your">Votre réponse : ${letters[a]} – ${q.choices[a]}</div>` : ''}
+          <div class="rv-correct">✔ Bonne réponse : ${letters[q.answer]} – ${q.choices[q.answer]}</div>
+          <div class="rv-expl">${q.expl}</div>
+          <div class="rv-expl" style="margin-top:4px;">${q.ref}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  app.innerHTML = `
+    <div class="results-card">
+      <h2>Résultats de ${state.participant.prenom} ${state.participant.nom}</h2>
+      <p style="color:var(--muted);font-size:13px;margin-top:4px;">
+        Poste : ${state.participant.poste} &nbsp;·&nbsp; Durée : ${dur} min &nbsp;·&nbsp; Novembre 2026
+      </p>
+
+      <div class="score-ring-wrap">
+        <div class="score-circle ${ringCls}">
+          <span class="sc-pct">${pct}%</span>
+          <span class="sc-raw">${score} / ${total}</span>
+        </div>
+        <div class="score-message">${msg}</div>
+        <div class="score-sub">Seuil de validation : 70%</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="sb-val" style="color:var(--success)">${score}</div>
+          <div class="sb-lbl">Bonnes réponses</div>
+        </div>
+        <div class="stat-box">
+          <div class="sb-val" style="color:var(--danger)">${total - score}</div>
+          <div class="sb-lbl">Mauvaises réponses</div>
+        </div>
+        <div class="stat-box">
+          <div class="sb-val">${dur}</div>
+          <div class="sb-lbl">Minutes</div>
+        </div>
+      </div>
+
+      <div class="tracking-box ${state.trackingStatus === 'sent' ? 'sent' : state.trackingStatus === 'error' ? 'error' : 'pending'}" id="trackBox">
+        ${state.trackingStatus === 'sent'
+          ? '✅ Résultats enregistrés dans Google Sheets'
+          : state.trackingStatus === 'error'
+          ? "⚠️ Erreur d'envoi – vérifiez la configuration dans le fichier HTML"
+          : '⏳ Envoi en cours…'}
+      </div>
+
+      <h3 style="margin-top:24px;color:var(--navy);font-size:16px;">Revue question par question</h3>
+      <div class="review-list">${reviewItems}</div>
+
+      <button class="btn-next" style="margin-top:24px" onclick="location.reload()">Recommencer le quiz</button>
+    </div>
+  `;
+}
+
+function toggleReview(i) {
+  const el = document.getElementById('rv' + i);
+  el.classList.toggle('open');
+  el.querySelector('.review-chevron').textContent = el.classList.contains('open') ? '▼' : '▶';
+}
+
+// ── TRACKING ──────────────────────────────────────────────────────────────
+async function sendToSheets() {
+  if (!SHEETS_URL) { state.trackingStatus = 'error'; return; }
+  const now   = new Date();
+  const total = QUESTIONS.length;
+  const score = state.answers.filter((a, i) => a === QUESTIONS[i].answer).length;
+  const dur   = Math.round((Date.now() - state.startTime) / 60000);
+  const details = QUESTIONS.map((q, i) => `Q${i+1}:${state.answers[i] === q.answer ? 'OK' : 'KO'}`).join(' | ');
+
+  const payload = {
+    date:        now.toLocaleDateString('fr-FR'),
+    heure:       now.toLocaleTimeString('fr-FR'),
+    prenom:      state.participant.prenom,
+    nom:         state.participant.nom,
+    poste:       state.participant.poste || '-',
+    score:       score,
+    total:       total,
+    pourcentage: Math.round((score / total) * 100) + '%',
+    duree:       dur,
+    details:     details,
+    formation:   "Novembre 2026 – Vérification et conformité des équipements"
+  };
+
+  try {
+    await fetch(SHEETS_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    state.trackingStatus = 'sent';
+  } catch(err) {
+    state.trackingStatus = 'error';
+  }
+
+  const tb = document.getElementById('trackBox');
+  if (tb) {
+    tb.className = 'tracking-box ' + (state.trackingStatus === 'sent' ? 'sent' : 'error');
+    tb.textContent = state.trackingStatus === 'sent'
+      ? '✅ Résultats enregistrés dans Google Sheets'
+      : "⚠️ Erreur d'envoi – vérifiez la configuration dans le fichier HTML";
+  }
+}
+
+render();
+</script>
+</body>
+</html>
